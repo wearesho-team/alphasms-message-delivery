@@ -55,7 +55,8 @@ class ServiceTest extends TestCase
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[0]['request'];
         $this->assertEquals(
-            'https://alphasms.ua/api/http.php?to=380000000000&text=Some+Text&command=send&login=Login&password=Password&version=http', // phpcs:ignore
+            'https://alphasms.ua/api/http.php?to=380000000000&text=Some+Text&command=send&login=Login&password=Password&version=http',
+            // phpcs:ignore
             $request->getUri()->__toString()
         );
     }
@@ -106,6 +107,19 @@ class ServiceTest extends TestCase
         $this->mock->append(
             new GuzzleHttp\Psr7\Response(200, [], 'badbody')
         );
+
+        $this->service->balance();
+    }
+
+    /**
+     * @expectedException \Wearesho\Delivery\Exception
+     * @expectedExceptionMessage Authorization does not configured
+     */
+    public function testNotConfiguredAuthorization(): void
+    {
+        $this->config->login = null;
+        $this->config->password = null;
+        $this->config->apiKey = null;
 
         $this->service->balance();
     }
