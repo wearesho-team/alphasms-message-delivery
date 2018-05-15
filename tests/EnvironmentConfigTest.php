@@ -2,6 +2,7 @@
 
 namespace Wearesho\Delivery\AlphaSms\Tests;
 
+use Horat1us\Environment\MissingEnvironmentException;
 use PHPUnit\Framework\TestCase;
 use Wearesho\Delivery;
 
@@ -43,5 +44,14 @@ class EnvironmentConfigTest extends TestCase
         $this->assertNull($this->config->getApiKey());
         putenv('ALPHASMS_API_KEY=2l3nrihx2xr23zdsSDZ');
         $this->assertEquals('2l3nrihx2xr23zdsSDZ', $this->config->getApiKey());
+    }
+
+    public function testSender(): void
+    {
+        putenv('ALPHASMS_SENDER_NAME=wearesho');
+        $this->assertEquals('wearesho', $this->config->getSenderName());
+        putenv('ALPHASMS_SENDER_NAME');
+        $this->expectException(MissingEnvironmentException::class);
+        $this->config->getSenderName();
     }
 }
