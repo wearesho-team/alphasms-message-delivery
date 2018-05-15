@@ -76,7 +76,6 @@ class Service implements Delivery\ServiceInterface
         if ($this->config->getApiKey()) {
             $params['key'] = $apiKey;
         } else {
-
             $login = $this->config->getLogin();
             $password = $this->config->getPassword();
 
