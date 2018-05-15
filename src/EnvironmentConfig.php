@@ -29,4 +29,13 @@ class EnvironmentConfig extends Environment\Config implements ConfigInterface
     {
         return $this->getEnv('API_KEY', [$this, 'null']);
     }
+
+    /**
+     * @return string
+     * @throws Environment\MissingEnvironmentException
+     */
+    public function getSenderName(): string
+    {
+        return $this->getEnv('SENDER_NAME');
+    }
 }

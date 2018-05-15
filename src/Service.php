@@ -38,6 +38,7 @@ class Service implements Delivery\ServiceInterface
 
         $params = [
             'to' => $message->getRecipient(),
+            'from' => $this->config->getSenderName(),
             'text' => $message->getText(),
             'command' => Command::SEND,
         ];
