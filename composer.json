@@ -1,0 +1,32 @@
+{
+  "name": "wearesho-team/alphasms-message-delivery",
+  "description": "Message Delivery AlphaSMS integration",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alexander Letnikow",
+      "email": "reclamme@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=7.1",
+    "wearesho-team/message-delivery": "^1.3",
+    "guzzlehttp/guzzle": "^6.3",
+    "horat1us/environment-config": "^1.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Wearesho\\Delivery\\AlphaSms\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Wearesho\\Delivery\\AlphaSms\\Tests\\": "tests/"
+    }
+  }
+}
