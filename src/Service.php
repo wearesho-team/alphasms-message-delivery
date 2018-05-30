@@ -75,7 +75,7 @@ class Service implements Delivery\ServiceInterface
     {
         $apiKey = $this->config->getApiKey();
         if ($this->config->getApiKey()) {
-            $params['key'] = $apiKey;
+            $urlParams = "key={$apiKey}";
         } else {
             $login = $this->config->getLogin();
             $password = $this->config->getPassword();
@@ -84,14 +84,11 @@ class Service implements Delivery\ServiceInterface
                 throw new Delivery\Exception("Authorization does not configured");
             }
 
-            $params += [
-                'login' => $login,
-                'pass' => $password,
-            ];
+            $urlParams = "login={$login}&pass={$password}";
         }
 
         $params['version'] = 'http';
 
-        return static::BASE_URI . '?' . http_build_query($params);
+        return static::BASE_URI . '?' . http_build_query($params) . "&{$urlParams}";
     }
 }

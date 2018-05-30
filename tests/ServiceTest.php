@@ -55,7 +55,7 @@ class ServiceTest extends TestCase
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[0]['request'];
         $this->assertEquals(
-            'https://alphasms.ua/api/http.php?to=380000000000&from=test&message=Some+Text&command=send&login=Login&pass=Password&version=http', // phpcs:ignore
+            'https://alphasms.ua/api/http.php?to=380000000000&from=test&message=Some+Text&command=send&version=http&login=Login&pass=Password', // phpcs:ignore
             $request->getUri()->__toString()
         );
     }
@@ -81,7 +81,7 @@ class ServiceTest extends TestCase
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[0]['request'];
         $this->assertEquals(
-            'https://alphasms.ua/api/http.php?command=balance&login=Login&pass=Password&version=http',
+            'https://alphasms.ua/api/http.php?command=balance&version=http&login=Login&pass=Password',
             $request->getUri()->__toString()
         );
 
@@ -92,7 +92,7 @@ class ServiceTest extends TestCase
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[1]['request'];
         $this->assertEquals(
-            'https://alphasms.ua/api/http.php?command=balance&key=ApiKey&version=http',
+            'https://alphasms.ua/api/http.php?command=balance&version=http&key=ApiKey',
             $request->getUri()->__toString()
         );
     }
