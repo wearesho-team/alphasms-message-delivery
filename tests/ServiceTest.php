@@ -55,7 +55,7 @@ class ServiceTest extends TestCase
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[0]['request'];
         $this->assertEquals(
-            'https://alphasms.ua/api/http.php?to=380000000000&from=test&text=Some+Text&command=send&login=Login&pass=Password&version=http', // phpcs:ignore
+            'https://alphasms.ua/api/http.php?to=380000000000&from=test&message=Some+Text&command=send&login=Login&pass=Password&version=http', // phpcs:ignore
             $request->getUri()->__toString()
         );
     }
