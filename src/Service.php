@@ -86,7 +86,7 @@ class Service implements Delivery\ServiceInterface
 
             $params += [
                 'login' => $login,
-                'password' => $password,
+                'pass' => $password,
             ];
         }
 
