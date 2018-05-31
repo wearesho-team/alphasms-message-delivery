@@ -56,26 +56,6 @@ class Service implements Delivery\ServiceInterface
         ]);
     }
 
-    /**
-     * @return float
-     * @throws Delivery\Exception
-     * @throws GuzzleHttp\Exception\GuzzleException
-     */
-    public function balance(): float
-    {
-        $params = [
-            'command' => Command::BALANCE,
-        ];
-        $response = $this->client->request('get', $this->buildQuery($params));
-        $body = (string)$response->getBody();
-
-        if (!preg_match('/^balance:(\d+(\.\d+)?)$/', (string)$response->getBody(), $matches)) {
-            throw new Delivery\Exception("Invalid Response: $body");
-        }
-
-        return $matches[1];
-    }
-
     protected function initXmlRequestHead(): \SimpleXMLElement
     {
         $requestObject = new \SimpleXMLElement('<package></package>');
@@ -84,34 +64,5 @@ class Service implements Delivery\ServiceInterface
         $requestObject->addAttribute('password', $this->config->getPassword());
 
         return $requestObject;
-    }
-
-    /**
-     * @param array $params
-     * @throws Delivery\Exception
-     * @return string
-     */
-    protected function buildQuery(array $params): string
-    {
-        $apiKey = $this->config->getApiKey();
-        if ($this->config->getApiKey()) {
-            $params['key'] = $apiKey;
-        } else {
-            $login = $this->config->getLogin();
-            $password = $this->config->getPassword();
-
-            if (empty($login) || empty($password)) {
-                throw new Delivery\Exception("Authorization does not configured");
-            }
-
-            $params += [
-                'login' => $login,
-                'password' => $password,
-            ];
-        }
-
-        $params['version'] = 'http';
-
-        return static::BASE_URI . '?' . http_build_query($params);
     }
 }

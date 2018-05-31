@@ -55,8 +55,11 @@ class ServiceTest extends TestCase
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[0]['request'];
         $this->assertEquals(
-            'https://alphasms.ua/api/http.php?to=380000000000&from=test&text=Some+Text&command=send&login=Login&password=Password&version=http', // phpcs:ignore
-            $request->getUri()->__toString()
+            '<?xml version="1.0"?>
+<package login="Login" password="Password"><message><msg recipient="380000000000" sender="test" type="0">Some Text</msg></message></package>' // phpcs:ignore
+            . '
+',
+            (string)$request->getBody()
         );
     }
 
@@ -68,58 +71,5 @@ class ServiceTest extends TestCase
     {
         $message = new Delivery\Message("Text", "123");
         $this->service->send($message);
-    }
-
-    public function testGetBalance(): void
-    {
-        $this->mock->append(
-            new GuzzleHttp\Psr7\Response(200, [], 'balance:1.203948')
-        );
-        $balance = $this->service->balance();
-        $this->assertEquals('1.203948', $balance);
-
-        /** @var GuzzleHttp\Psr7\Request $request */
-        $request = $this->container[0]['request'];
-        $this->assertEquals(
-            'https://alphasms.ua/api/http.php?command=balance&login=Login&password=Password&version=http',
-            $request->getUri()->__toString()
-        );
-
-        $this->mock->append(new GuzzleHttp\Psr7\Response(200, [], 'balance:1.203948'));
-        $this->config->apiKey = 'ApiKey';
-        $this->service->balance();
-
-        /** @var GuzzleHttp\Psr7\Request $request */
-        $request = $this->container[1]['request'];
-        $this->assertEquals(
-            'https://alphasms.ua/api/http.php?command=balance&key=ApiKey&version=http',
-            $request->getUri()->__toString()
-        );
-    }
-
-    /**
-     * @expectedException \Wearesho\Delivery\Exception
-     * @expectedExceptionMessage Invalid Response: badbody
-     */
-    public function testGetBalanceInvalidResponse(): void
-    {
-        $this->mock->append(
-            new GuzzleHttp\Psr7\Response(200, [], 'badbody')
-        );
-
-        $this->service->balance();
-    }
-
-    /**
-     * @expectedException \Wearesho\Delivery\Exception
-     * @expectedExceptionMessage Authorization does not configured
-     */
-    public function testNotConfiguredAuthorization(): void
-    {
-        $this->config->login = null;
-        $this->config->password = null;
-        $this->config->apiKey = null;
-
-        $this->service->balance();
     }
 }
