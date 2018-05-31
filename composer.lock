@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "d7e58b291742bd5b9ca2975d3e07455b",
+    "content-hash": "b512bd59d451f4017a2db31ffe85f847",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -279,16 +279,16 @@
         },
         {
             "name": "wearesho-team/message-delivery",
-            "version": "1.3.4",
+            "version": "1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wearesho-team/message-delivery.git",
-                "reference": "164044923c8c44d3a2fb1d3a28d8e52153885140"
+                "reference": "b9d79a8da6f9385852f070607aad3236aa7ce4c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wearesho-team/message-delivery/zipball/164044923c8c44d3a2fb1d3a28d8e52153885140",
-                "reference": "164044923c8c44d3a2fb1d3a28d8e52153885140",
+                "url": "https://api.github.com/repos/wearesho-team/message-delivery/zipball/b9d79a8da6f9385852f070607aad3236aa7ce4c4",
+                "reference": "b9d79a8da6f9385852f070607aad3236aa7ce4c4",
                 "shasum": ""
             },
             "require": {
@@ -315,7 +315,7 @@
                 }
             ],
             "description": "Message Delivery Interfaces",
-            "time": "2018-05-15T08:10:06+00:00"
+            "time": "2018-05-21T09:59:54+00:00"
         }
     ],
     "packages-dev": [
@@ -1831,7 +1831,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.1"
+        "php": ">=7.1",
+        "ext-simplexml": "*"
     },
     "platform-dev": [],
     "platform-overrides": {
