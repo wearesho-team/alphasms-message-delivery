@@ -11,7 +11,7 @@ use GuzzleHttp;
  */
 class Service implements Delivery\ServiceInterface
 {
-    protected const BASE_URI = 'https://alphasms.ua/api/http.php';
+    protected const BASE_URI = 'https://alphasms.ua/api/xml.php';
 
     /** @var GuzzleHttp\ClientInterface */
     protected $client;
@@ -32,18 +32,28 @@ class Service implements Delivery\ServiceInterface
      */
     public function send(Delivery\MessageInterface $message): void
     {
-        if (!preg_match('/^380\d{9}$/', $message->getRecipient())) {
+        if (!preg_match('/^(\+)?380\d{9}$/', $message->getRecipient())) {
             throw new Delivery\Exception("Unsupported recipient format");
         }
 
-        $params = [
-            'to' => $message->getRecipient(),
-            'from' => $this->config->getSenderName(),
-            'text' => $message->getText(),
-            'command' => Command::SEND,
-        ];
+        $requestObject = $this->initXmlRequestHead();
+        $operation = $requestObject->addChild('message');
+        $msg = $operation->addChild('msg', $message->getText());
+        $msg->addAttribute('recipient', $message->getRecipient());
+        $msg->addAttribute(
+            'sender',
+            $message instanceof Delivery\ContainsSenderName
+                ? $message->getSenderName()
+                : $this->config->getSenderName()
+        );
+        $msg->addAttribute('type', 0);
 
-        $this->client->request('get', $this->buildQuery($params));
+        $this->client->request('get', static::BASE_URI, [
+            GuzzleHttp\RequestOptions::HEADERS => [
+                'Content-Type' => 'application/xml',
+            ],
+            GuzzleHttp\RequestOptions::BODY => $requestObject->saveXML(),
+        ]);
     }
 
     /**
@@ -64,6 +74,16 @@ class Service implements Delivery\ServiceInterface
         }
 
         return $matches[1];
+    }
+
+    protected function initXmlRequestHead(): \SimpleXMLElement
+    {
+        $requestObject = new \SimpleXMLElement('<package></package>');
+
+        $requestObject->addAttribute('login', $this->config->getLogin());
+        $requestObject->addAttribute('password', $this->config->getPassword());
+
+        return $requestObject;
     }
 
     /**

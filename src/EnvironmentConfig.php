@@ -15,19 +15,22 @@ class EnvironmentConfig extends Environment\Config implements ConfigInterface
         parent::__construct($keyPrefix);
     }
 
-    public function getLogin(): ?string
+    /**
+     * @return string
+     * @throws Environment\MissingEnvironmentException
+     */
+    public function getLogin(): string
     {
-        return $this->getEnv('LOGIN', [$this, 'null']);
+        return $this->getEnv('LOGIN');
     }
 
-    public function getPassword(): ?string
+    /**
+     * @return string
+     * @throws Environment\MissingEnvironmentException
+     */
+    public function getPassword(): string
     {
-        return $this->getEnv('PASSWORD', [$this, 'null']);
-    }
-
-    public function getApiKey(): ?string
-    {
-        return $this->getEnv('API_KEY', [$this, 'null']);
+        return $this->getEnv('PASSWORD');
     }
 
     /**
