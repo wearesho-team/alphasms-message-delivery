@@ -48,12 +48,22 @@ class Service implements Delivery\ServiceInterface
         );
         $msg->addAttribute('type', 0);
 
-        $this->client->request('get', static::BASE_URI, [
+        $response = $this->client->request('get', static::BASE_URI, [
             GuzzleHttp\RequestOptions::HEADERS => [
                 'Content-Type' => 'application/xml',
             ],
             GuzzleHttp\RequestOptions::BODY => $requestObject->saveXML(),
         ]);
+
+        $body = $response->getBody()->__toString();
+
+        $xml = simplexml_load_string($body);
+        if ($xml->error) {
+            throw new Delivery\Exception(
+                "Alphasms response contains error",
+                $xml->error[0]->__toString()
+            );
+        }
     }
 
     protected function initXmlRequestHead(): \SimpleXMLElement

@@ -47,7 +47,7 @@ class ServiceTest extends TestCase
     public function testSendMessage(): void
     {
         $this->mock->append(
-            new GuzzleHttp\Psr7\Response(200, [], 'id:1')
+            new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><status><msg id="1234" sms_id="0" sms_count="1" date_completed="200914T15:27:03">102</msg><msg sms_id="1234568" sms_count="1">1</msg></status></package>')
         );
         $message = new Delivery\Message('Some Text', '380000000000');
         $this->service->send($message);
@@ -61,6 +61,20 @@ class ServiceTest extends TestCase
 ',
             (string)$request->getBody()
         );
+    }
+
+    /**
+     * @expectedException \Wearesho\Delivery\Exception
+     * @expectedExceptionMessage Alphasms response contains error
+     * @expectedExceptionCode 201
+     */
+    public function testError(): void
+    {
+        $this->mock->append(
+            new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><error>201</error></package>')
+        );
+        $message = new Delivery\Message('Some Text', '380000000000');
+        $this->service->send($message);
     }
 
     /**
