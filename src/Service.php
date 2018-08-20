@@ -59,9 +59,10 @@ class Service implements Delivery\ServiceInterface
 
         $xml = simplexml_load_string($body);
         if ($xml->error) {
+            $errorCode = $xml->error[0]->__toString();
             throw new Delivery\Exception(
-                "Alphasms response contains error",
-                $xml->error[0]->__toString()
+                "AlphaSMS Sending Error: " . $errorCode,
+                $errorCode
             );
         }
     }

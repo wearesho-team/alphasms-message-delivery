@@ -65,7 +65,7 @@ class ServiceTest extends TestCase
 
     /**
      * @expectedException \Wearesho\Delivery\Exception
-     * @expectedExceptionMessage Alphasms response contains error
+     * @expectedExceptionMessage AlphaSMS Sending Error: 201
      * @expectedExceptionCode 201
      */
     public function testError(): void
