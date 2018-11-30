@@ -50,6 +50,7 @@ class ServiceTest extends TestCase
             new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><status><msg id="1234" sms_id="0" sms_count="1" date_completed="200914T15:27:03">102</msg><msg sms_id="1234568" sms_count="1">1</msg></status></package>') // phpcs:ignore
         );
         $message = new Delivery\Message('Some Text', '380000000000');
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->service->send($message);
 
         /** @var GuzzleHttp\Psr7\Request $request */
@@ -63,6 +64,20 @@ class ServiceTest extends TestCase
         );
     }
 
+    public function testBalance(): void
+    {
+        $this->mock->append(
+            new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><balance><amount>7.15</amount><currency>UAH</currency></balance></package>') // phpcs:ignore
+        );
+
+        $expectBalance = new Delivery\AlphaSms\Response\Balance(7.15, "UAH");
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $actualBalance = $this->service->balance();
+
+        $this->assertEquals($expectBalance->getAmount(), $actualBalance->getAmount());
+        $this->assertEquals($expectBalance->getCurrency(), $actualBalance->getCurrency());
+    }
+
     /**
      * @expectedException \Wearesho\Delivery\Exception
      * @expectedExceptionMessage AlphaSMS Sending Error: 201
@@ -74,6 +89,7 @@ class ServiceTest extends TestCase
             new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><error>201</error></package>') // phpcs:ignore
         );
         $message = new Delivery\Message('Some Text', '380000000000');
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->service->send($message);
     }
 
@@ -84,6 +100,7 @@ class ServiceTest extends TestCase
     public function testInvalidRecipient(): void
     {
         $message = new Delivery\Message("Text", "123");
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->service->send($message);
     }
 }

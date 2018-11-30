@@ -27,6 +27,7 @@ class Service implements Delivery\ServiceInterface
 
     /**
      * @param Delivery\MessageInterface $message
+     *
      * @throws Delivery\Exception
      * @throws GuzzleHttp\Exception\GuzzleException
      */
@@ -48,18 +49,53 @@ class Service implements Delivery\ServiceInterface
         );
         $msg->addAttribute('type', 0);
 
-        $response = $this->client->request('get', static::BASE_URI, [
-            GuzzleHttp\RequestOptions::HEADERS => [
-                'Content-Type' => 'application/xml',
-            ],
-            GuzzleHttp\RequestOptions::BODY => $requestObject->saveXML(),
-        ]);
-
+        $response = $this->client->send($this->formRequest($requestObject));
         $body = $response->getBody()->__toString();
-
         $xml = simplexml_load_string($body);
-        if ($xml->error) {
-            $errorCode = $xml->error[0]->__toString();
+        $this->validateResponse($xml);
+    }
+
+    /**
+     * @throws Delivery\Exception
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function balance()
+    {
+        $requestObject = $this->initXmlRequestHead();
+        $requestObject->addChild('balance');
+
+        $response = $this->client->send($this->formRequest($requestObject));
+
+        $body = (string)$response->getBody();
+        $xml = simplexml_load_string($body);
+        $this->validateResponse($xml);
+        $balanceXml = $xml->{Response\Balance::TAG};
+
+        return new Response\Balance(
+            (float)$balanceXml->{Response\Balance::AMOUNT},
+            (string)$balanceXml->{Response\Balance::CURRENCY}
+        );
+    }
+
+    protected function formRequest(\SimpleXMLElement $body): GuzzleHttp\Psr7\Request
+    {
+        return new GuzzleHttp\Psr7\Request(
+            'GET',
+            static::BASE_URI,
+            ['Content-Type' => 'application/xml',],
+            $body->saveXML()
+        );
+    }
+
+    /**
+     * @param \SimpleXMLElement $response
+     *
+     * @throws Delivery\Exception
+     */
+    protected function validateResponse(\SimpleXMLElement $response)
+    {
+        if ($response->error) {
+            $errorCode = $response->error[0]->__toString();
             throw new Delivery\Exception(
                 "AlphaSMS Sending Error: " . $errorCode,
                 $errorCode
