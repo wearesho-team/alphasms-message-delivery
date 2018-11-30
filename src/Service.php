@@ -100,7 +100,7 @@ class Service implements Delivery\ServiceInterface
         try {
             $xml = simplexml_load_string($body);
         } catch (\Throwable $exception) {
-            throw new Delivery\Exception("Response contain invalid body: " . $body);
+            throw new Delivery\Exception("Response contain invalid body: " . $body, Exception::ERR_FORMAT, $exception);
         }
 
         if ($xml->error) {

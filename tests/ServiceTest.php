@@ -117,7 +117,7 @@ class ServiceTest extends TestCase
         $this->expectExceptionMessage(
             'Response contain invalid body: <?xml version="1.0" encoding="utf-8" ?><package><invalid</package>'
         );
-        $this->expectExceptionCode(0);
+        $this->expectExceptionCode(Delivery\AlphaSms\Exception::ERR_FORMAT);
 
         $this->mock->append(
             $this->mockResponse('<invalid')
