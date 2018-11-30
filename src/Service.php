@@ -2,6 +2,7 @@
 
 namespace Wearesho\Delivery\AlphaSms;
 
+use Psr\Http\Message\ResponseInterface;
 use Wearesho\Delivery;
 use GuzzleHttp;
 
@@ -27,6 +28,7 @@ class Service implements Delivery\ServiceInterface
 
     /**
      * @param Delivery\MessageInterface $message
+     *
      * @throws Delivery\Exception
      * @throws GuzzleHttp\Exception\GuzzleException
      */
@@ -48,23 +50,68 @@ class Service implements Delivery\ServiceInterface
         );
         $msg->addAttribute('type', 0);
 
-        $response = $this->client->request('get', static::BASE_URI, [
-            GuzzleHttp\RequestOptions::HEADERS => [
-                'Content-Type' => 'application/xml',
-            ],
-            GuzzleHttp\RequestOptions::BODY => $requestObject->saveXML(),
-        ]);
+        $this->fetchBody(
+            $this->client->send($this->formRequest($requestObject))
+        );
+    }
 
-        $body = $response->getBody()->__toString();
+    /**
+     * @return Response\Balance
+     * @throws Delivery\Exception
+     * @throws Exception
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function balance()
+    {
+        $requestObject = $this->initXmlRequestHead();
+        $requestObject->addChild('balance');
 
-        $xml = simplexml_load_string($body);
+        $balanceXml = $this->fetchBody(
+            $this->client->send($this->formRequest($requestObject))
+        )->{Response\Balance::TAG};
+
+        return new Response\Balance(
+            (float)$balanceXml->{Response\Balance::AMOUNT},
+            (string)$balanceXml->{Response\Balance::CURRENCY}
+        );
+    }
+
+    protected function formRequest(\SimpleXMLElement $body): GuzzleHttp\Psr7\Request
+    {
+        return new GuzzleHttp\Psr7\Request(
+            'GET',
+            static::BASE_URI,
+            ['Content-Type' => 'application/xml',],
+            $body->saveXML()
+        );
+    }
+
+    /**
+     * @param ResponseInterface $response
+     *
+     * @return \SimpleXMLElement
+     * @throws Delivery\Exception
+     * @throws Exception
+     */
+    protected function fetchBody(ResponseInterface $response): \SimpleXMLElement
+    {
+        $body = (string)$response->getBody();
+
+        try {
+            $xml = simplexml_load_string($body);
+        } catch (\Throwable $exception) {
+            throw new Delivery\Exception("Response contain invalid body: " . $body, Exception::ERR_FORMAT, $exception);
+        }
+
         if ($xml->error) {
             $errorCode = $xml->error[0]->__toString();
-            throw new Delivery\Exception(
+            throw new Exception(
                 "AlphaSMS Sending Error: " . $errorCode,
                 $errorCode
             );
         }
+
+        return $xml;
     }
 
     protected function initXmlRequestHead(): \SimpleXMLElement
