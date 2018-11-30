@@ -40,10 +40,13 @@ $config->password = 'qwerty123';
 $service = new Delivery\AlphaSms\Service($config, new GuzzleHttp\Client);
 
 $balance = $service->balance(); // fetch balance on current account
+$balance->getAmount();
+$balance->getCurrency();
 ```
 
-## Author
+## Authors
 - [Alexander <horat1us> Letnikow](mailto:reclamme@gmail.com)
+- [Roman <KartaviK> Varkuta](mailto:roman.varkuta@gmail.com)
 
 ## License
 [MIT](./LICENSE)

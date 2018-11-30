@@ -2,6 +2,7 @@
 
 namespace Wearesho\Delivery\AlphaSms;
 
+use Psr\Http\Message\ResponseInterface;
 use Wearesho\Delivery;
 use GuzzleHttp;
 
@@ -49,10 +50,9 @@ class Service implements Delivery\ServiceInterface
         );
         $msg->addAttribute('type', 0);
 
-        $response = $this->client->send($this->formRequest($requestObject));
-        $body = $response->getBody()->__toString();
-        $xml = simplexml_load_string($body);
-        $this->validateResponse($xml);
+        $this->fetchBody(
+            $this->client->send($this->formRequest($requestObject))
+        );
     }
 
     /**
@@ -66,12 +66,9 @@ class Service implements Delivery\ServiceInterface
         $requestObject = $this->initXmlRequestHead();
         $requestObject->addChild('balance');
 
-        $response = $this->client->send($this->formRequest($requestObject));
-
-        $body = (string)$response->getBody();
-        $xml = simplexml_load_string($body);
-        $this->validateResponse($xml);
-        $balanceXml = $xml->{Response\Balance::TAG};
+        $balanceXml = $this->fetchBody(
+            $this->client->send($this->formRequest($requestObject))
+        )->{Response\Balance::TAG};
 
         return new Response\Balance(
             (float)$balanceXml->{Response\Balance::AMOUNT},
@@ -90,19 +87,31 @@ class Service implements Delivery\ServiceInterface
     }
 
     /**
-     * @param \SimpleXMLElement $response
+     * @param ResponseInterface $response
      *
-     * @throws Exception|Delivery\Exception
+     * @return \SimpleXMLElement
+     * @throws Delivery\Exception
+     * @throws Exception
      */
-    protected function validateResponse(\SimpleXMLElement $response)
+    protected function fetchBody(ResponseInterface $response): \SimpleXMLElement
     {
-        if ($response->error) {
-            $errorCode = $response->error[0]->__toString();
+        $body = (string)$response->getBody();
+
+        try {
+            $xml = simplexml_load_string($body);
+        } catch (\Throwable $exception) {
+            throw new Delivery\Exception("Response contain invalid body: " . $body);
+        }
+
+        if ($xml->error) {
+            $errorCode = $xml->error[0]->__toString();
             throw new Exception(
                 "AlphaSMS Sending Error: " . $errorCode,
                 $errorCode
             );
         }
+
+        return $xml;
     }
 
     protected function initXmlRequestHead(): \SimpleXMLElement

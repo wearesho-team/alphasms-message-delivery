@@ -15,11 +15,6 @@ class ServiceTest extends TestCase
 {
     protected const ERR_UNKNOWN = 200;
     protected const ERR_FORMAT = 201;
-    protected const ERR_AUTHORIZATION = 202;
-    protected const ERR_USER_DISABLE = 205;
-    protected const ERR_API_DISABLE = 209;
-    protected const ERR_IP_DENIED = 210;
-    protected const ERR_THROTTLE = 212;
 
     /** @var Delivery\AlphaSms\Service */
     protected $service;
@@ -114,6 +109,22 @@ class ServiceTest extends TestCase
         $message = new Delivery\Message('Some Text', '380000000000');
         /** @noinspection PhpUnhandledExceptionInspection */
         $this->service->send($message);
+    }
+
+    public function testInvalidResponse(): void
+    {
+        $this->expectException(Delivery\Exception::class);
+        $this->expectExceptionMessage(
+            'Response contain invalid body: <?xml version="1.0" encoding="utf-8" ?><package><invalid</package>'
+        );
+        $this->expectExceptionCode(0);
+
+        $this->mock->append(
+            $this->mockResponse('<invalid')
+        );
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->service->send(new Delivery\Message('content', '380000000000'));
     }
 
     /**
