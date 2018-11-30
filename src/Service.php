@@ -56,7 +56,9 @@ class Service implements Delivery\ServiceInterface
     }
 
     /**
+     * @return Response\Balance
      * @throws Delivery\Exception
+     * @throws Exception
      * @throws GuzzleHttp\Exception\GuzzleException
      */
     public function balance()
@@ -90,13 +92,13 @@ class Service implements Delivery\ServiceInterface
     /**
      * @param \SimpleXMLElement $response
      *
-     * @throws Delivery\Exception
+     * @throws Exception|Delivery\Exception
      */
     protected function validateResponse(\SimpleXMLElement $response)
     {
         if ($response->error) {
             $errorCode = $response->error[0]->__toString();
-            throw new Delivery\Exception(
+            throw new Exception(
                 "AlphaSMS Sending Error: " . $errorCode,
                 $errorCode
             );

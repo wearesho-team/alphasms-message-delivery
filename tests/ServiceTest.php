@@ -13,6 +13,14 @@ use Wearesho\Delivery;
  */
 class ServiceTest extends TestCase
 {
+    protected const ERR_UNKNOWN = 200;
+    protected const ERR_FORMAT = 201;
+    protected const ERR_AUTHORIZATION = 202;
+    protected const ERR_USER_DISABLE = 205;
+    protected const ERR_API_DISABLE = 209;
+    protected const ERR_IP_DENIED = 210;
+    protected const ERR_THROTTLE = 212;
+
     /** @var Delivery\AlphaSms\Service */
     protected $service;
 
@@ -66,16 +74,31 @@ class ServiceTest extends TestCase
 
     public function testBalance(): void
     {
+        $expectAmount = 7.15;
+        $expectCurrency = 'UAH';
         $this->mock->append(
-            new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><balance><amount>7.15</amount><currency>UAH</currency></balance></package>') // phpcs:ignore
+            $this->mockResponse("<balance><amount>$expectAmount</amount><currency>$expectCurrency</currency></balance>")
         );
 
-        $expectBalance = new Delivery\AlphaSms\Response\Balance(7.15, "UAH");
         /** @noinspection PhpUnhandledExceptionInspection */
         $actualBalance = $this->service->balance();
 
-        $this->assertEquals($expectBalance->getAmount(), $actualBalance->getAmount());
-        $this->assertEquals($expectBalance->getCurrency(), $actualBalance->getCurrency());
+        $this->assertEquals($expectAmount, $actualBalance->getAmount());
+        $this->assertEquals($expectCurrency, $actualBalance->getCurrency());
+    }
+
+    public function testFailedBalance(): void
+    {
+        $this->expectException(Delivery\AlphaSms\Exception::class);
+        $this->expectExceptionMessage("AlphaSMS Sending Error: " . static::ERR_UNKNOWN);
+        $this->expectExceptionCode(static::ERR_UNKNOWN);
+
+        $this->mock->append(
+            $this->mockFailedResponse(static::ERR_UNKNOWN)
+        );
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->service->balance();
     }
 
     /**
@@ -86,7 +109,7 @@ class ServiceTest extends TestCase
     public function testError(): void
     {
         $this->mock->append(
-            new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><error>201</error></package>') // phpcs:ignore
+            $this->mockFailedResponse(static::ERR_FORMAT)
         );
         $message = new Delivery\Message('Some Text', '380000000000');
         /** @noinspection PhpUnhandledExceptionInspection */
@@ -102,5 +125,19 @@ class ServiceTest extends TestCase
         $message = new Delivery\Message("Text", "123");
         /** @noinspection PhpUnhandledExceptionInspection */
         $this->service->send($message);
+    }
+
+    protected function mockFailedResponse(int $code): GuzzleHttp\Psr7\Response
+    {
+        return $this->mockResponse("<error>$code</error>");
+    }
+
+    protected function mockResponse(string $content): GuzzleHttp\Psr7\Response
+    {
+        return new GuzzleHttp\Psr7\Response(
+            200,
+            [],
+            "<?xml version=\"1.0\" encoding=\"utf-8\" ?><package>$content</package>"
+        );
     }
 }
