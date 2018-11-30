@@ -39,4 +39,9 @@ class Balance
     {
         return $this->currency;
     }
+
+    public function __toString(): string
+    {
+        return "$this->amount $this->currency";
+    }
 }
