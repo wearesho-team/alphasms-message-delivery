@@ -81,7 +81,7 @@ class ServiceTest extends TestCase
         $this->assertEquals($expectAmount, $actualBalance->getAmount());
         $this->assertEquals($expectCurrency, $actualBalance->getCurrency());
         $this->assertEquals(
-            "$expectAmount $expectCurrency",
+            round($expectAmount, 2) . " $expectCurrency",
             (string)$actualBalance
         );
     }

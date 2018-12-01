@@ -42,6 +42,6 @@ class Balance
 
     public function __toString(): string
     {
-        return "$this->amount $this->currency";
+        return round($this->getAmount(), 2) . " {$this->getCurrency()}";
     }
 }
