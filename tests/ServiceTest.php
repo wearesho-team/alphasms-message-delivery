@@ -50,7 +50,7 @@ class ServiceTest extends TestCase
     public function testSendMessage(): void
     {
         $this->mock->append(
-            new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><status><msg id="1234" sms_id="0" sms_count="1" date_completed="200914T15:27:03">102</msg><msg sms_id="1234568" sms_count="1">1</msg></status></package>') // phpcs:ignore
+            $this->mockSuccessResponse()
         );
         $message = new Delivery\Message('Some Text', '380000000000');
         /** @noinspection PhpUnhandledExceptionInspection */
@@ -110,9 +110,39 @@ class ServiceTest extends TestCase
         $this->mock->append(
             $this->mockFailedResponse(static::ERR_FORMAT)
         );
-        $message = new Delivery\Message('Some Text', '380000000000');
         /** @noinspection PhpUnhandledExceptionInspection */
-        $this->service->send($message);
+        $this->service->send(
+            new Delivery\Message('Some Text', '380000000000')
+        );
+    }
+
+    public function testSendOnViber(): void
+    {
+        $this->mock->append(
+            $this->mockSuccessResponse()
+        );
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->service->sendOnViber(
+            new Delivery\Message('Some Text', '380000000000')
+        );
+
+        /** @var GuzzleHttp\Psr7\Request $request */
+        $request = $this->container[0]['request'];
+        $this->assertXmlStringEqualsXmlString(
+            '<?xml version="1.0" encoding="utf-8" ?>
+            <package login="login" password="password">
+                <message-viber>
+                    <msg>
+                        <phone>380000000000</phone>
+                        <sender>test</sender>
+                        <type>text</type>
+                        <text>Some Text</text>
+                    </msg>
+                </message-viber>
+            </package>',
+            (string)$request->getBody()
+        );
     }
 
     public function testCostCollection(): void
@@ -140,7 +170,8 @@ class ServiceTest extends TestCase
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[0]['request'];
         $this->assertEquals(
-            "<?xml version=\"1.0\"?>\n<package login=\"Login\" password=\"Password\"><prices><phone>380501234567</phone><phone>37122123456</phone></prices></package>\n", // phpcs:ignore
+            "<?xml version=\"1.0\"?>\n<package login=\"Login\" password=\"Password\"><prices><phone>380501234567</phone><phone>37122123456</phone></prices></package>\n",
+            // phpcs:ignore
             (string)$request->getBody()
         );
     }
@@ -175,6 +206,16 @@ class ServiceTest extends TestCase
     protected function mockFailedResponse(int $code): GuzzleHttp\Psr7\Response
     {
         return $this->mockResponse("<error>$code</error>");
+    }
+
+    protected function mockSuccessResponse(): GuzzleHttp\Psr7\Response
+    {
+        return $this->mockResponse(
+            '<status>
+                <msg id="1234" sms_id="0" sms_count="1" date_completed="200914T15:27:03">102</msg>
+                <msg sms_id="1234568" sms_count="1">1</msg>
+            </status>'
+        );
     }
 
     protected function mockResponse(string $content): GuzzleHttp\Psr7\Response
