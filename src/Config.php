@@ -8,12 +8,13 @@ namespace Wearesho\Delivery\AlphaSms;
  */
 class Config implements ConfigInterface
 {
+    /** @var string|null */
     public $sender;
 
-    /** @var string|null */
+    /** @var string */
     public $login;
 
-    /** @var string|null */
+    /** @var string */
     public $password;
 
     /** @var string|null */
