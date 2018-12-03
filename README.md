@@ -9,7 +9,7 @@
 
 ## Installation
 ```bash
-composer require wearsho-team/alphasms-message-delivery:^1.0
+composer require wearsho-team/alphasms-message-delivery:^2.2.0
 ```
 
 ## Usage
