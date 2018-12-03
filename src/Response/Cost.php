@@ -8,7 +8,8 @@ namespace Wearesho\Delivery\AlphaSms\Response;
  */
 class Cost implements \JsonSerializable
 {
-    public const TAG = 'phone';
+    public const WRAPPER = 'prices';
+    public const PHONE = 'phone';
     public const PRICE = 'price';
     public const CURRENCY = 'currency';
 

@@ -94,11 +94,11 @@ class Service implements Delivery\ServiceInterface
 
         $costs = $this->fetchBody(
             $this->client->send($this->formRequest($requestObject))
-        )->{Response\Cost::TAG};
+        )->{Response\Cost::WRAPPER};
 
         $costCollection = new Response\CostCollection();
 
-        foreach ($costs as $cost) {
+        foreach ($costs->{Response\Cost::PHONE} as $cost) {
             $attributes = $cost->attributes();
             $costCollection->append(new Response\Cost(
                 (string)$cost,
