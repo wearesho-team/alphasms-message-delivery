@@ -34,7 +34,6 @@ class Service implements Delivery\ServiceInterface
     public function client(): GuzzleHttp\ClientInterface
     {
         return $this->client;
-      
     }
 
     /**
