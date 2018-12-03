@@ -136,6 +136,13 @@ class ServiceTest extends TestCase
         $this->assertEquals($costs[0]->getAmount(), 0.28);
         $this->assertEquals($costs[1]->getRecipient(), '37122123456');
         $this->assertEquals($costs[1]->getAmount(), 1.6);
+
+        /** @var GuzzleHttp\Psr7\Request $request */
+        $request = $this->container[0]['request'];
+        $this->assertEquals(
+            "<?xml version=\"1.0\"?>\n<package login=\"Login\" password=\"Password\"><prices><phone>380501234567</phone><phone>37122123456</phone></prices></package>\n", // phpcs:ignore
+            (string)$request->getBody()
+        );
     }
 
     public function testInvalidResponse(): void

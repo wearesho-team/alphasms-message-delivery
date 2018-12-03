@@ -87,9 +87,10 @@ class Service implements Delivery\ServiceInterface
     public function cost(array $recipients): Response\CostCollection
     {
         $requestObject = $this->initXmlRequestHead();
+        $requestObject->addChild('prices');
 
         foreach ($recipients as $recipient) {
-            $requestObject->addChild('phone', (string)$recipient);
+            $requestObject->prices->addChild('phone', (string)$recipient);
         }
 
         $costs = $this->fetchBody(
