@@ -15,6 +15,7 @@
     "ext-simplexml": "*",
     "guzzlehttp/guzzle": "^6.3",
     "horat1us/environment-config": "^1.2",
+    "wearesho-team/base-collection": "^1.0",
     "wearesho-team/message-delivery": "^1.5"
   },
   "require-dev": {
