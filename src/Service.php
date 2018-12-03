@@ -26,6 +26,16 @@ class Service implements Delivery\ServiceInterface
         $this->config = $config;
     }
 
+    public function config(): ConfigInterface
+    {
+        return $this->config;
+    }
+
+    public function client(): GuzzleHttp\ClientInterface
+    {
+        return $this->client;
+    }
+
     /**
      * @param Delivery\MessageInterface $message
      *
@@ -153,8 +163,14 @@ class Service implements Delivery\ServiceInterface
     {
         $requestObject = new \SimpleXMLElement('<package></package>');
 
-        $requestObject->addAttribute('login', $this->config->getLogin());
-        $requestObject->addAttribute('password', $this->config->getPassword());
+        $key = $this->config->getApiKey();
+
+        if (!empty($key)) {
+            $requestObject->addAttribute('key', $key);
+        } else {
+            $requestObject->addAttribute('login', $this->config->getLogin());
+            $requestObject->addAttribute('password', $this->config->getPassword());
+        }
 
         return $requestObject;
     }
