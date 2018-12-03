@@ -128,7 +128,7 @@ class Service implements Delivery\ServiceInterface
     {
         $requestObject = new \SimpleXMLElement('<package></package>');
 
-        $key = $this->config->getKey();
+        $key = $this->config->getApiKey();
 
         if (!empty($key)) {
             $requestObject->addAttribute('key', $key);

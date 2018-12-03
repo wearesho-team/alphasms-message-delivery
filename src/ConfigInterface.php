@@ -16,5 +16,5 @@ interface ConfigInterface
 
     public function getPassword(): string;
 
-    public function getKey(): ?string;
+    public function getApiKey(): ?string;
 }

@@ -37,7 +37,7 @@ class EnvironmentConfig extends Environment\Config implements ConfigInterface
      * @return null|string
      * @throws Environment\MissingEnvironmentException
      */
-    public function getKey(): ?string
+    public function getApiKey(): ?string
     {
         return $this->getEnv('KEY', [$this, 'null']);
     }

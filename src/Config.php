@@ -46,7 +46,7 @@ class Config implements ConfigInterface
         return $this->password;
     }
 
-    public function getKey(): ?string
+    public function getApiKey(): ?string
     {
         return $this->apiKey;
     }

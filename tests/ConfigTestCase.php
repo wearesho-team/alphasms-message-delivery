@@ -36,6 +36,6 @@ class ConfigTestCase extends TestCase
 
     public function testGetKey(): void
     {
-        $this->assertEquals(static::KEY, $this->config->getKey());
+        $this->assertEquals(static::KEY, $this->config->getApiKey());
     }
 }
