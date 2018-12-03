@@ -169,9 +169,14 @@ class ServiceTest extends TestCase
 
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[0]['request'];
-        $this->assertEquals(
-            "<?xml version=\"1.0\"?>\n<package login=\"Login\" password=\"Password\"><prices><phone>380501234567</phone><phone>37122123456</phone></prices></package>\n",
-            // phpcs:ignore
+        $this->assertXmlStringEqualsXmlString(
+            "<?xml version=\"1.0\"?>
+                <package login=\"Login\" password=\"Password\">
+                    <prices>
+                        <phone>380501234567</phone>
+                        <phone>37122123456</phone>
+                    </prices>
+                </package>",
             (string)$request->getBody()
         );
     }
