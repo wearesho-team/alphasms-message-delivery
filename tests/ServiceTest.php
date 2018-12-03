@@ -13,6 +13,11 @@ use Wearesho\Delivery;
  */
 class ServiceTest extends TestCase
 {
+    protected const LOGIN = 'login';
+    protected const PASSWORD = 'password';
+    protected const SENDER = 'test';
+    protected const KEY = 'key';
+    protected const RECIPIENT = '380000000000';
     protected const ERR_UNKNOWN = 200;
     protected const ERR_FORMAT = 201;
 
@@ -31,45 +36,67 @@ class ServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->config = new Delivery\AlphaSms\Config();
-        $this->config->login = 'Login';
-        $this->config->password = 'Password';
+        $this->config = new Delivery\AlphaSms\Config(static::LOGIN, static::PASSWORD, static::SENDER);
 
-        $this->mock = new GuzzleHttp\Handler\MockHandler();
-        $this->container = [];
-        $history = GuzzleHttp\Middleware::history($this->container);
+        $this->service = new Delivery\AlphaSms\Service($this->config, $this->createClient());
+    }
 
-        $stack = new GuzzleHttp\HandlerStack($this->mock);
-        $stack->push($history);
+    public function testConfig(): void
+    {
+        $this->assertEquals($this->config, $this->service->config());
+    }
 
-        $this->service = new Delivery\AlphaSms\Service($this->config, new GuzzleHttp\Client([
-            'handler' => $stack,
-        ]));
+    public function testClient(): void
+    {
+        $this->assertEquals($this->createClient(), $this->service->client());
     }
 
     public function testSendMessage(): void
     {
         $this->mock->append(
-            new GuzzleHttp\Psr7\Response(200, [], '<?xml version="1.0" encoding="utf-8" ?><package><status><msg id="1234" sms_id="0" sms_count="1" date_completed="200914T15:27:03">102</msg><msg sms_id="1234568" sms_count="1">1</msg></status></package>') // phpcs:ignore
+            $this->mockSuccessResponse()
         );
-        $message = new Delivery\Message('Some Text', '380000000000');
         /** @noinspection PhpUnhandledExceptionInspection */
-        $this->service->send($message);
+        $this->service->send(
+            new Delivery\Message('Some Text', static::RECIPIENT)
+        );
 
         /** @var GuzzleHttp\Psr7\Request $request */
         $request = $this->container[0]['request'];
         $this->assertEquals(
-            '<?xml version="1.0"?>
-<package login="Login" password="Password"><message><msg recipient="380000000000" sender="test" type="0">Some Text</msg></message></package>' // phpcs:ignore
-            . '
-',
+            "<?xml version=\"1.0\"?>\n<package login=\"login\" password=\"password\"><message><msg recipient=\"380000000000\" sender=\"test\" type=\"0\">Some Text</msg></message></package>\n", // phpcs:ignore
+            (string)$request->getBody()
+        );
+    }
+
+    public function testSendWithKey(): void
+    {
+        $this->mock->append(
+            $this->mockSuccessResponse()
+        );
+        $this->service = new Delivery\AlphaSms\Service(
+            new Delivery\AlphaSms\Config(static::LOGIN, static::PASSWORD, null, static::KEY),
+            $this->createClient()
+        );
+        $this->mock->append(
+            $this->mockSuccessResponse()
+        );
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->service->send(
+            new Delivery\MessageWithSender('content', static::RECIPIENT, 'sender')
+        );
+
+        /** @var GuzzleHttp\Psr7\Request $request */
+        $request = $this->container[0]['request'];
+        $this->assertEquals(
+            "<?xml version=\"1.0\"?>\n<package key=\"". static::KEY ."\"><message><msg recipient=\"". static::RECIPIENT . "\" sender=\"sender\" type=\"0\">content</msg></message></package>\n", // phpcs:ignore
             (string)$request->getBody()
         );
     }
 
     public function testBalance(): void
     {
-        $expectAmount = 7.15;
+        $expectAmount = 7.150000;
         $expectCurrency = 'UAH';
         $this->mock->append(
             $this->mockResponse("<balance><amount>$expectAmount</amount><currency>$expectCurrency</currency></balance>")
@@ -110,7 +137,7 @@ class ServiceTest extends TestCase
         $this->mock->append(
             $this->mockFailedResponse(static::ERR_FORMAT)
         );
-        $message = new Delivery\Message('Some Text', '380000000000');
+        $message = new Delivery\Message('Some Text', static::RECIPIENT);
         /** @noinspection PhpUnhandledExceptionInspection */
         $this->service->send($message);
     }
@@ -128,7 +155,7 @@ class ServiceTest extends TestCase
         );
 
         /** @noinspection PhpUnhandledExceptionInspection */
-        $this->service->send(new Delivery\Message('content', '380000000000'));
+        $this->service->send(new Delivery\Message('content', static::RECIPIENT));
     }
 
     /**
@@ -142,9 +169,33 @@ class ServiceTest extends TestCase
         $this->service->send($message);
     }
 
+    protected function createClient(): GuzzleHttp\Client
+    {
+        $this->mock = new GuzzleHttp\Handler\MockHandler();
+        $this->container = [];
+        $history = GuzzleHttp\Middleware::history($this->container);
+
+        $stack = new GuzzleHttp\HandlerStack($this->mock);
+        $stack->push($history);
+
+        return new GuzzleHttp\Client([
+            'handler' => $stack,
+        ]);
+    }
+
     protected function mockFailedResponse(int $code): GuzzleHttp\Psr7\Response
     {
         return $this->mockResponse("<error>$code</error>");
+    }
+
+    protected function mockSuccessResponse(): GuzzleHttp\Psr7\Response
+    {
+        return $this->mockResponse(
+            '<status>
+                <msg id="1234" sms_id="0" sms_count="1" date_completed="200914T15:27:03">102</msg>
+                <msg sms_id="1234568" sms_count="1">1</msg>
+            </status>'
+        );
     }
 
     protected function mockResponse(string $content): GuzzleHttp\Psr7\Response

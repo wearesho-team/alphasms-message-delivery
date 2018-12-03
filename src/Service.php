@@ -76,6 +76,16 @@ class Service implements Delivery\ServiceInterface
         );
     }
 
+    public function config(): ConfigInterface
+    {
+        return $this->config;
+    }
+
+    public function client(): GuzzleHttp\ClientInterface
+    {
+        return $this->client;
+    }
+
     protected function formRequest(\SimpleXMLElement $body): GuzzleHttp\Psr7\Request
     {
         return new GuzzleHttp\Psr7\Request(
@@ -118,8 +128,14 @@ class Service implements Delivery\ServiceInterface
     {
         $requestObject = new \SimpleXMLElement('<package></package>');
 
-        $requestObject->addAttribute('login', $this->config->getLogin());
-        $requestObject->addAttribute('password', $this->config->getPassword());
+        $key = $this->config->getKey();
+
+        if (!empty($key)) {
+            $requestObject->addAttribute('key', $key);
+        } else {
+            $requestObject->addAttribute('login', $this->config->getLogin());
+            $requestObject->addAttribute('password', $this->config->getPassword());
+        }
 
         return $requestObject;
     }

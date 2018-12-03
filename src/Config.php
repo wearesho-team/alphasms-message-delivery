@@ -8,16 +8,28 @@ namespace Wearesho\Delivery\AlphaSms;
  */
 class Config implements ConfigInterface
 {
-    public $sender = 'test';
+    public $sender;
 
     /** @var string|null */
     public $login;
 
     /** @var string|null */
-    public $password = null;
+    public $password;
 
     /** @var string|null */
-    public $apiKey = null;
+    public $apiKey;
+
+    public function __construct(
+        string $login,
+        string $password,
+        ?string $senderName = ConfigInterface::DEFAULT_SENDER,
+        string $key = null
+    ) {
+        $this->login = $login;
+        $this->password = $password;
+        $this->sender = $senderName;
+        $this->apiKey = $key;
+    }
 
     public function getSenderName(): string
     {
@@ -34,7 +46,7 @@ class Config implements ConfigInterface
         return $this->password;
     }
 
-    public function getApiKey(): ?string
+    public function getKey(): ?string
     {
         return $this->apiKey;
     }
