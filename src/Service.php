@@ -34,21 +34,38 @@ class Service implements Delivery\ServiceInterface
      */
     public function send(Delivery\MessageInterface $message): void
     {
-        if (!preg_match('/^(\+)?380\d{9}$/', $message->getRecipient())) {
-            throw new Delivery\Exception("Unsupported recipient format");
-        }
+        $this->validatePhone($message->getRecipient());
 
         $requestObject = $this->initXmlRequestHead();
         $operation = $requestObject->addChild('message');
         $msg = $operation->addChild('msg', $message->getText());
         $msg->addAttribute('recipient', $message->getRecipient());
-        $msg->addAttribute(
-            'sender',
-            $message instanceof Delivery\ContainsSenderName
-                ? $message->getSenderName()
-                : $this->config->getSenderName()
-        );
+        $msg->addAttribute('sender', $this->fetchSenderName($message));
         $msg->addAttribute('type', 0);
+
+        $this->fetchBody(
+            $this->client->send($this->formRequest($requestObject))
+        );
+    }
+
+    /**
+     * @param Delivery\MessageInterface $message
+     *
+     * @throws Delivery\Exception
+     * @throws Exception
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function sendOnViber(Delivery\MessageInterface $message)
+    {
+        $this->validatePhone($message->getRecipient());
+
+        $requestObject = $this->initXmlRequestHead();
+        $operation = $requestObject->addChild('message-viber');
+        $msg = $operation->addChild('msg');
+        $msg->addChild('phone', $message->getRecipient());
+        $msg->addChild('sender', $this->fetchSenderName($message));
+        $msg->addChild('type', 'text');
+        $msg->addChild('text', $message->getText());
 
         $this->fetchBody(
             $this->client->send($this->formRequest($requestObject))
@@ -109,6 +126,25 @@ class Service implements Delivery\ServiceInterface
         }
 
         return $costCollection;
+    }
+
+    /**
+     * @param string $phoneNumber
+     *
+     * @throws Delivery\Exception
+     */
+    protected function validatePhone(string $phoneNumber): void
+    {
+        if (!preg_match('/^(\+)?380\d{9}$/', $phoneNumber)) {
+            throw new Delivery\Exception("Unsupported recipient format");
+        }
+    }
+
+    protected function fetchSenderName(Delivery\MessageInterface $message): string
+    {
+        return $message instanceof Delivery\ContainsSenderName
+            ? $message->getSenderName()
+            : $this->config->getSenderName();
     }
 
     protected function formRequest(\SimpleXMLElement $body): GuzzleHttp\Psr7\Request
