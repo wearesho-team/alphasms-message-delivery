@@ -9,7 +9,7 @@
 
 ## Installation
 ```bash
-composer require wearsho-team/alphasms-message-delivery:^1.0
+composer require wearsho-team/alphasms-message-delivery:^2.2.0
 ```
 
 ## Usage
@@ -38,10 +38,47 @@ $config->login = '380000000000';
 $config->password = 'qwerty123';
 
 $service = new Delivery\AlphaSms\Service($config, new GuzzleHttp\Client);
+```
 
-$balance = $service->balance(); // fetch balance on current account
+- Check balance on current account
+```php
+<?php
+
+use Wearesho\Delivery;
+
+/** @var Delivery\AlphaSms\Service $service */
+
+$balance = $service->balance();
 $balance->getAmount();
 $balance->getCurrency();
+
+$message = (string)$balance; // will output "{amount} {currency}"
+```
+
+- Get cost of sending messages on concrete phone numbers
+```php
+<?php
+
+use Wearesho\Delivery;
+
+/** @var Delivery\AlphaSms\Service $service */
+/** @var Delivery\AlphaSms\Response\CostCollection $costs */
+
+$costs = $service->cost([
+    '380000000001',
+    '380000000002'
+]); // fetch costs of sending message on concrete phones
+
+$sum = $costs->sum();
+
+/** @var Delivery\AlphaSms\Response\Cost $singleCost */
+foreach ($costs as $singleCost) {
+    $singleCost->getRecipient();
+    $singleCost->getAmount();
+    $singleCost->getCurrency();
+    
+    $singleCost->jsonSerialize(); // serialize to json
+}
 ```
 
 ## Authors
