@@ -115,6 +115,36 @@ class ServiceTest extends TestCase
         $this->service->send($message);
     }
 
+    public function testCostCollection(): void
+    {
+        $this->mock->append(
+            $this->mockResponse(
+                '<prices>
+                    <phone price="0.28" currency="UAH">380501234567</phone>
+                    <phone price="1.6" currency="UAH">37122123456</phone>
+                </prices>'
+            )
+        );
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $costs = $this->service->cost([
+            '380501234567',
+            '37122123456'
+        ]);
+
+        $this->assertEquals($costs[0]->getRecipient(), '380501234567');
+        $this->assertEquals($costs[0]->getAmount(), 0.28);
+        $this->assertEquals($costs[1]->getRecipient(), '37122123456');
+        $this->assertEquals($costs[1]->getAmount(), 1.6);
+
+        /** @var GuzzleHttp\Psr7\Request $request */
+        $request = $this->container[0]['request'];
+        $this->assertEquals(
+            "<?xml version=\"1.0\"?>\n<package login=\"Login\" password=\"Password\"><prices><phone>380501234567</phone><phone>37122123456</phone></prices></package>\n", // phpcs:ignore
+            (string)$request->getBody()
+        );
+    }
+
     public function testInvalidResponse(): void
     {
         $this->expectException(Delivery\Exception::class);

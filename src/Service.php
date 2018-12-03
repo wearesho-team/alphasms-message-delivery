@@ -61,7 +61,7 @@ class Service implements Delivery\ServiceInterface
      * @throws Exception
      * @throws GuzzleHttp\Exception\GuzzleException
      */
-    public function balance()
+    public function balance(): Delivery\AlphaSms\Response\Balance
     {
         $requestObject = $this->initXmlRequestHead();
         $requestObject->addChild('balance');
@@ -74,6 +74,41 @@ class Service implements Delivery\ServiceInterface
             (float)$balanceXml->{Response\Balance::AMOUNT},
             (string)$balanceXml->{Response\Balance::CURRENCY}
         );
+    }
+
+    /**
+     * @param array $recipients
+     *
+     * @return Response\CostCollection
+     * @throws Delivery\Exception
+     * @throws Exception
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function cost(array $recipients): Response\CostCollection
+    {
+        $requestObject = $this->initXmlRequestHead();
+        $requestObject->addChild('prices');
+
+        foreach ($recipients as $recipient) {
+            $requestObject->prices->addChild('phone', (string)$recipient);
+        }
+
+        $costs = $this->fetchBody(
+            $this->client->send($this->formRequest($requestObject))
+        )->{Response\Cost::WRAPPER};
+
+        $costCollection = new Response\CostCollection();
+
+        foreach ($costs->{Response\Cost::PHONE} as $cost) {
+            $attributes = $cost->attributes();
+            $costCollection->append(new Response\Cost(
+                (string)$cost,
+                (float)$attributes[Response\Cost::PRICE],
+                (string)$attributes[Response\Cost::CURRENCY]
+            ));
+        }
+
+        return $costCollection;
     }
 
     protected function formRequest(\SimpleXMLElement $body): GuzzleHttp\Psr7\Request
