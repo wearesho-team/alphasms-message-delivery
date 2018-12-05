@@ -13,6 +13,9 @@ use Wearesho\Delivery;
  */
 class ServiceTest extends TestCase
 {
+    protected const LOGIN = 'Login';
+    protected const PASSWORD = 'Password';
+    protected const RECIPIENT = '380000000000';
     protected const ERR_UNKNOWN = 200;
     protected const ERR_FORMAT = 201;
 
@@ -32,8 +35,8 @@ class ServiceTest extends TestCase
     {
         parent::setUp();
         $this->config = new Delivery\AlphaSms\Config();
-        $this->config->login = 'Login';
-        $this->config->password = 'Password';
+        $this->config->login = static::LOGIN;
+        $this->config->password = static::PASSWORD;
 
         $this->mock = new GuzzleHttp\Handler\MockHandler();
         $this->container = [];
@@ -56,7 +59,7 @@ class ServiceTest extends TestCase
                 '<?xml version="1.0" encoding="utf-8" ?><package><status><msg id="1234" sms_id="0" sms_count="1" date_completed="200914T15:27:03">102</msg><msg sms_id="1234568" sms_count="1">1</msg></status></package>'  // phpcs:ignore
             )
         );
-        $message = new Delivery\Message('Some Text', '380000000000');
+        $message = new Delivery\Message('Some Text', static::RECIPIENT);
         /** @noinspection PhpUnhandledExceptionInspection */
         $this->service->send($message);
 
@@ -109,6 +112,80 @@ class ServiceTest extends TestCase
 
         /** @noinspection PhpUnhandledExceptionInspection */
         $this->service->balance();
+    }
+
+    public function testSendPatch(): void
+    {
+        $this->mock->append(
+            $this->mockResponse(
+                '<message>
+                    <msg sms_id="85244344" sms_count="1">1</msg>
+                    <msg sms_id="0" sms_count="0">202</msg>
+                </message>'
+            )
+        );
+
+        $messageCollection = new Delivery\AlphaSms\MessageCollection([
+            new Delivery\Message('Test', static::RECIPIENT),
+            new Delivery\Message('Test', static::RECIPIENT),
+        ]);
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $statusCollection = $this->service->sendPatch($messageCollection);
+
+        /** @var Delivery\AlphaSms\Response\MessageStatus $firstStatus */
+        $firstStatus = $statusCollection[0];
+
+        $this->assertEquals('85244344', $firstStatus->getGatewayId());
+        $this->assertEquals(1, $firstStatus->getSmsCount());
+        $this->assertEquals(1, $firstStatus->getValue());
+        $this->assertNull($firstStatus->getId());
+        $this->assertTrue($firstStatus->isSuccess());
+
+        /** @var Delivery\AlphaSms\Response\MessageStatus $secondStatus */
+        $secondStatus = $statusCollection[1];
+
+        $this->assertEquals('0', $secondStatus->getGatewayId());
+        $this->assertEquals(0, $secondStatus->getSmsCount());
+        $this->assertEquals(202, $secondStatus->getValue());
+        $this->assertNull($secondStatus->getId());
+        $this->assertFalse($secondStatus->isSuccess());
+    }
+
+    public function testFailedSendPatch(): void
+    {
+        $this->expectException(Delivery\Exception::class);
+        $this->expectExceptionMessage('Unsupported recipient format');
+        $this->expectExceptionCode(0);
+
+        $messageCollection = new Delivery\AlphaSms\MessageCollection([
+            new Delivery\Message('Test', 'invalid_recipient'),
+        ]);
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->service->sendPatch($messageCollection);
+    }
+
+    public function testSendPatchAsync(): void
+    {
+        $expectJobId = '8714ea91e9bb454d25ef42ba6f18ea4e';
+
+        $this->mock->append(
+            $this->mockResponse(
+                "<message-async>
+                    <job>$expectJobId</job>
+                </message-async>"
+            )
+        );
+
+        $messageCollection = new Delivery\AlphaSms\MessageCollection([
+            new Delivery\Message('Test', static::RECIPIENT),
+            new Delivery\Message('Test', static::RECIPIENT),
+        ]);
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $actualJobId = $this->service->sendPatchAsync($messageCollection);
+        $this->assertEquals($expectJobId, $actualJobId);
     }
 
     /**

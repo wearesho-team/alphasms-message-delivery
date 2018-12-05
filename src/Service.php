@@ -13,6 +13,10 @@ use GuzzleHttp;
 class Service implements Delivery\ServiceInterface
 {
     protected const BASE_URI = 'https://alphasms.ua/api/xml.php';
+    protected const DEFAULT = 0;
+    protected const SYNC = 'message';
+    protected const ASYNC = 'message-async';
+    protected const PRICES = 'prices';
 
     /** @var GuzzleHttp\ClientInterface */
     protected $client;
@@ -34,25 +38,81 @@ class Service implements Delivery\ServiceInterface
      */
     public function send(Delivery\MessageInterface $message): void
     {
-        if (!preg_match('/^(\+)?380\d{9}$/', $message->getRecipient())) {
-            throw new Delivery\Exception("Unsupported recipient format");
-        }
+        $this->validatePhone($message->getRecipient());
 
         $requestObject = $this->initXmlRequestHead();
-        $operation = $requestObject->addChild('message');
-        $msg = $operation->addChild('msg', $message->getText());
-        $msg->addAttribute('recipient', $message->getRecipient());
-        $msg->addAttribute(
-            'sender',
-            $message instanceof Delivery\ContainsSenderName
-                ? $message->getSenderName()
-                : $this->config->getSenderName()
-        );
-        $msg->addAttribute('type', 0);
+        $this->formMessage($this->operationMessage($requestObject), $message);
 
         $this->fetchBody(
             $this->client->send($this->formRequest($requestObject))
         );
+    }
+
+    /**
+     * @param MessageCollection $messages
+     *
+     * @return Response\MessageStatusCollection
+     * @throws Delivery\Exception
+     * @throws Exception
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function sendPatch(MessageCollection $messages): Response\MessageStatusCollection
+    {
+        $this->validatePhoneCollection($messages);
+
+        $request = $this->initXmlRequestHead();
+        $operation = $this->operationMessage($request);
+
+        /** @var Delivery\MessageInterface $message */
+        foreach ($messages as $message) {
+            $this->formMessage($operation, $message);
+        }
+
+        $responseBody = $this->fetchBody(
+            $this->client->send($this->formRequest($request))
+        );
+
+        $statusCollection = new Response\MessageStatusCollection();
+
+        foreach ($responseBody->message->msg as $messageXml) {
+            $attributes = $messageXml->attributes();
+
+            $statusCollection->append(new Response\MessageStatus(
+                (string)$attributes['sms_id'],
+                (int)$messageXml,
+                (int)$attributes['sms_count'],
+                isset($attributes['id']) ? (string)$attributes['id'] : null
+            ));
+        }
+
+        return $statusCollection;
+    }
+
+    /**
+     * @param MessageCollection $messages
+     *
+     * @return string
+     * @throws Delivery\Exception
+     * @throws Exception
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function sendPatchAsync(MessageCollection $messages): string
+    {
+        $this->validatePhoneCollection($messages);
+
+        $request = $this->initXmlRequestHead();
+        $operation = $this->operationMessage($request, static::ASYNC);
+
+        /** @var Delivery\MessageInterface $message */
+        foreach ($messages as $message) {
+            $this->formMessage($operation, $message);
+        }
+
+        $responseBody = $this->fetchBody(
+            $this->client->send($this->formRequest($request))
+        );
+
+        return (string)$responseBody->{static::ASYNC}->job;
     }
 
     /**
@@ -87,10 +147,10 @@ class Service implements Delivery\ServiceInterface
     public function cost(array $recipients): Response\CostCollection
     {
         $requestObject = $this->initXmlRequestHead();
-        $requestObject->addChild('prices');
+        $operation = $this->operationMessage($requestObject, static::PRICES);
 
         foreach ($recipients as $recipient) {
-            $requestObject->prices->addChild('phone', (string)$recipient);
+            $operation->addChild('phone', (string)$recipient);
         }
 
         $costs = $this->fetchBody(
@@ -109,6 +169,55 @@ class Service implements Delivery\ServiceInterface
         }
 
         return $costCollection;
+    }
+
+    /**
+     * @param MessageCollection $messages
+     *
+     * @throws Delivery\Exception
+     */
+    protected function validatePhoneCollection(MessageCollection $messages): void
+    {
+        /** @var Delivery\MessageInterface $message */
+        foreach ($messages as $message) {
+            $this->validatePhone($message->getRecipient());
+        }
+    }
+
+    /**
+     * @param string $phoneNumber
+     *
+     * @throws Delivery\Exception
+     */
+    protected function validatePhone(string $phoneNumber): void
+    {
+        if (!preg_match('/^(\+)?380\d{9}$/', $phoneNumber)) {
+            throw new Delivery\Exception("Unsupported recipient format");
+        }
+    }
+
+    protected function fetchSenderName(Delivery\MessageInterface $message): string
+    {
+        return $message instanceof Delivery\ContainsSenderName
+            ? $message->getSenderName()
+            : $this->config->getSenderName();
+    }
+
+    protected function formMessage(
+        \SimpleXMLElement $operation,
+        Delivery\MessageInterface $message
+    ): \SimpleXMLElement {
+        $msg = $operation->addChild('msg', $message->getText());
+        $msg->addAttribute('recipient', $message->getRecipient());
+        $msg->addAttribute('sender', $this->fetchSenderName($message));
+        $msg->addAttribute('type', static::DEFAULT);
+
+        return $msg;
+    }
+
+    protected function operationMessage(\SimpleXMLElement $package, string $type = Service::SYNC): \SimpleXMLElement
+    {
+        return $package->addChild($type);
     }
 
     protected function formRequest(\SimpleXMLElement $body): GuzzleHttp\Psr7\Request
