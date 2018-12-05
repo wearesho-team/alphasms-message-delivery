@@ -62,7 +62,6 @@ class Cost implements \JsonSerializable
 
     public function __toString(): string
     {
-        return
-            $this->getRecipient() . ": " . number_format($this->getAmount(), 2, '.', ',') . " {$this->getCurrency()}";
+        return $this->getRecipient() . ": " . number_format($this->getAmount(), 2) . " {$this->getCurrency()}";
     }
 }
