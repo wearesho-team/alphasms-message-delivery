@@ -69,7 +69,7 @@ $costs = $service->cost([
     '380000000002'
 ]); // fetch costs of sending message on concrete phones
 
-$sum = $costs->sum();
+$sum = $costs->sum(); // total cost of sending
 
 /** @var Delivery\AlphaSms\Response\Cost $singleCost */
 foreach ($costs as $singleCost) {
@@ -77,8 +77,12 @@ foreach ($costs as $singleCost) {
     $singleCost->getAmount();
     $singleCost->getCurrency();
     
-    $singleCost->jsonSerialize(); // serialize to json
+    $singleCost->jsonSerialize(); // cast to json
+    (string)$singleCost; // cast to string
 }
+
+(string)$costs; // cast collection to string using Cost::__toString() format
+$costs->jsonSerialize(); // cast collection to array
 ```
 
 ## Authors
