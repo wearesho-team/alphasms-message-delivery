@@ -38,7 +38,11 @@ class Cost implements \JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return get_object_vars($this);
+        return [
+            'recipient' => $this->getRecipient(),
+            'amount' => number_format($this->getAmount(), 2),
+            'currency' => $this->getCurrency(),
+        ];
     }
 
     public function getRecipient(): string
@@ -54,5 +58,11 @@ class Cost implements \JsonSerializable
     public function getCurrency(): string
     {
         return $this->currency;
+    }
+
+    public function __toString(): string
+    {
+        return
+            $this->getRecipient() . ": " . number_format($this->getAmount(), 2, '.', ',') . " {$this->getCurrency()}";
     }
 }
