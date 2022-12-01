@@ -19,7 +19,7 @@ class EnvironmentConfigTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->config = new Delivery\AlphaSms\EnvironmentConfig;
+        $this->config = new Delivery\AlphaSms\EnvironmentConfig();
     }
 
     public function testGetLogin(): void

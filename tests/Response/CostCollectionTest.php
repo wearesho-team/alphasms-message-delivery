@@ -1,22 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms\Tests\Response;
 
 use PHPUnit\Framework\TestCase;
 use Wearesho\Delivery\AlphaSms\Response;
 
-/**
- * Class CostCollectionTest
- * @package Wearesho\Delivery\AlphaSms\Tests\Response
- */
 class CostCollectionTest extends TestCase
 {
     protected const AMOUNT = 0.500;
     protected const RECIPIENT = 'recipient';
     protected const CURRENCY = 'currency';
 
-    /** @var Response\CostCollection */
-    protected $fakeCostCollection;
+    protected Response\CostCollection $fakeCostCollection;
 
     public function setUp(): void
     {

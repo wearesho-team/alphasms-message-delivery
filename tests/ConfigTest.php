@@ -1,18 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Wearesho\Delivery;
 
-/**
- * Class ConfigTest
- * @package Wearesho\Delivery\AlphaSms\Tests
- */
 class ConfigTest extends TestCase
 {
-    /** @var Delivery\AlphaSms\Config */
-    protected $config;
+    protected Delivery\AlphaSms\Config $config;
 
     protected function setUp(): void
     {

@@ -1,11 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms;
 
-/**
- * Interface ConfigInterface
- * @package Wearesho\Delivery\AlphaSms
- */
 interface ConfigInterface
 {
     public function getSenderName(): string;

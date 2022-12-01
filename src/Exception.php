@@ -1,13 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms;
 
 use Wearesho\Delivery;
 
-/**
- * Class Exception
- * @package Wearesho\Delivery\AlphaSms
- */
 class Exception extends Delivery\Exception
 {
     public const ERR_UNKNOWN = 200;

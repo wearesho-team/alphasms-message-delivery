@@ -1,11 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms\Response;
 
-/**
- * Class Cost
- * @package Wearesho\Delivery\AlphaSms\Response
- */
 class Cost implements \JsonSerializable
 {
     public const WRAPPER = 'prices';
@@ -13,22 +11,12 @@ class Cost implements \JsonSerializable
     public const PRICE = 'price';
     public const CURRENCY = 'currency';
 
-    /** @var string */
-    protected $recipient;
+    protected string $recipient;
 
-    /** @var float */
-    protected $amount;
+    protected float $amount;
 
-    /** @var string */
-    protected $currency;
+    protected string $currency;
 
-    /**
-     * Cost constructor.
-     *
-     * @param string $recipient
-     * @param float $amount
-     * @param string $currency
-     */
     public function __construct(string $recipient, float $amount, string $currency)
     {
         $this->recipient = $recipient;

@@ -2,22 +2,15 @@
 
 namespace Wearesho\Delivery\AlphaSms;
 
-/**
- * Class Config
- * @package Wearesho\Delivery\AlphaSms
- */
 class Config implements ConfigInterface
 {
-    public $sender = 'test';
+    public string $sender = 'test';
 
-    /** @var string|null */
-    public $login;
+    public ?string $login = null;
 
-    /** @var string|null */
-    public $password = null;
+    public ?string $password = null;
 
-    /** @var string|null */
-    public $apiKey = null;
+    public ?string $apiKey = null;
 
     public function getSenderName(): string
     {

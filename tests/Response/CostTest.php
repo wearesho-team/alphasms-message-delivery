@@ -1,16 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms\Tests\Response;
 
 use Wearesho\Delivery\AlphaSms\Response\Cost;
-
 use PHPUnit\Framework\TestCase;
 
 /**
- * Class CostTest
- * @package Wearesho\Delivery\AlphaSms\Tests\Response
  * @coversDefaultClass Cost
- * @internal
  */
 class CostTest extends TestCase
 {
@@ -18,8 +16,7 @@ class CostTest extends TestCase
     protected const RECIPIENT = 'recipient';
     protected const CURRENCY = 'currency';
 
-    /** @var Cost */
-    protected $fakeCost;
+    protected Cost $fakeCost;
 
     protected function setUp(): void
     {
@@ -28,7 +25,7 @@ class CostTest extends TestCase
 
     public function testJsonSerialize(): void
     {
-        $this->assertArraySubset(
+        $this->assertEquals(
             [
                 'recipient' => static::RECIPIENT,
                 'amount' => static::AMOUNT,

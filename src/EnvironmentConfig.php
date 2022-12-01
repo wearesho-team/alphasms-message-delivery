@@ -1,13 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms;
 
 use Horat1us\Environment;
 
-/**
- * Class EnvironmentConfig
- * @package Wearesho\Delivery\AlphaSms
- */
 class EnvironmentConfig extends Environment\Config implements ConfigInterface
 {
     public function __construct(string $keyPrefix = 'ALPHASMS_')
@@ -16,7 +14,6 @@ class EnvironmentConfig extends Environment\Config implements ConfigInterface
     }
 
     /**
-     * @return string
      * @throws Environment\MissingEnvironmentException
      */
     public function getLogin(): string
@@ -25,7 +22,6 @@ class EnvironmentConfig extends Environment\Config implements ConfigInterface
     }
 
     /**
-     * @return string
      * @throws Environment\MissingEnvironmentException
      */
     public function getPassword(): string
@@ -34,7 +30,6 @@ class EnvironmentConfig extends Environment\Config implements ConfigInterface
     }
 
     /**
-     * @return string
      * @throws Environment\MissingEnvironmentException
      */
     public function getSenderName(): string

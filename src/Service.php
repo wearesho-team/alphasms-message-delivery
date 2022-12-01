@@ -1,24 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms;
 
 use Psr\Http\Message\ResponseInterface;
 use Wearesho\Delivery;
 use GuzzleHttp;
 
-/**
- * Class Service
- * @package Wearesho\Delivery\AlphaSms
- */
 class Service implements Delivery\ServiceInterface
 {
     protected const BASE_URI = 'https://alphasms.ua/api/xml.php';
 
-    /** @var GuzzleHttp\ClientInterface */
-    protected $client;
+    protected GuzzleHttp\ClientInterface $client;
 
-    /** @var ConfigInterface */
-    protected $config;
+    protected ConfigInterface $config;
 
     public function __construct(ConfigInterface $config, GuzzleHttp\ClientInterface $client)
     {
@@ -27,8 +23,6 @@ class Service implements Delivery\ServiceInterface
     }
 
     /**
-     * @param Delivery\MessageInterface $message
-     *
      * @throws Delivery\Exception
      * @throws GuzzleHttp\Exception\GuzzleException
      */
@@ -48,7 +42,7 @@ class Service implements Delivery\ServiceInterface
                 ? $message->getSenderName()
                 : $this->config->getSenderName()
         );
-        $msg->addAttribute('type', 0);
+        $msg->addAttribute('type', "0");
 
         $this->fetchBody(
             $this->client->send($this->formRequest($requestObject))
@@ -56,7 +50,6 @@ class Service implements Delivery\ServiceInterface
     }
 
     /**
-     * @return Response\Balance
      * @throws Delivery\Exception
      * @throws Exception
      * @throws GuzzleHttp\Exception\GuzzleException
@@ -77,7 +70,7 @@ class Service implements Delivery\ServiceInterface
     }
 
     /**
-     * @param array $recipients
+     * @param string[] $recipients
      *
      * @return Response\CostCollection
      * @throws Delivery\Exception
@@ -122,9 +115,6 @@ class Service implements Delivery\ServiceInterface
     }
 
     /**
-     * @param ResponseInterface $response
-     *
-     * @return \SimpleXMLElement
      * @throws Delivery\Exception
      * @throws Exception
      */
@@ -142,7 +132,7 @@ class Service implements Delivery\ServiceInterface
             $errorCode = $xml->error[0]->__toString();
             throw new Exception(
                 "AlphaSMS Sending Error: " . $errorCode,
-                $errorCode
+                (int)$errorCode
             );
         }
 

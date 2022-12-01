@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms\Tests;
 
 use GuzzleHttp;
@@ -7,8 +9,6 @@ use PHPUnit\Framework\TestCase;
 use Wearesho\Delivery;
 
 /**
- * Class ServiceTest
- * @package Wearesho\Delivery\AlphaSms\Tests
  * @coversDefaultClass \Wearesho\Delivery\AlphaSms\Service
  */
 class ServiceTest extends TestCase
@@ -16,17 +16,13 @@ class ServiceTest extends TestCase
     protected const ERR_UNKNOWN = 200;
     protected const ERR_FORMAT = 201;
 
-    /** @var Delivery\AlphaSms\Service */
-    protected $service;
+    protected Delivery\AlphaSms\Service $service;
 
-    /** @var Delivery\AlphaSms\Config */
-    protected $config;
+    protected Delivery\AlphaSms\Config $config;
 
-    /** @var GuzzleHttp\Handler\MockHandler */
-    protected $mock;
+    protected GuzzleHttp\Handler\MockHandler $mock;
 
-    /** @var array */
-    protected $container;
+    protected array $container;
 
     protected function setUp(): void
     {
@@ -111,11 +107,6 @@ class ServiceTest extends TestCase
         $this->service->balance();
     }
 
-    /**
-     * @expectedException \Wearesho\Delivery\Exception
-     * @expectedExceptionMessage AlphaSMS Sending Error: 201
-     * @expectedExceptionCode 201
-     */
     public function testError(): void
     {
         $this->mock->append(
@@ -123,6 +114,9 @@ class ServiceTest extends TestCase
         );
         $message = new Delivery\Message('Some Text', '380000000000');
         /** @noinspection PhpUnhandledExceptionInspection */
+        $this->expectException(Delivery\Exception::class);
+        $this->expectExceptionCode(201);
+        $this->expectExceptionMessage('AlphaSMS Sending Error: 201');
         $this->service->send($message);
     }
 
@@ -172,14 +166,12 @@ class ServiceTest extends TestCase
         $this->service->send(new Delivery\Message('content', '380000000000'));
     }
 
-    /**
-     * @expectedException \Wearesho\Delivery\Exception
-     * @expectedExceptionMessage Unsupported recipient format
-     */
     public function testInvalidRecipient(): void
     {
         $message = new Delivery\Message("Text", "123");
         /** @noinspection PhpUnhandledExceptionInspection */
+        $this->expectException(Delivery\Exception::class);
+        $this->expectExceptionMessage('Unsupported recipient format');
         $this->service->send($message);
     }
 

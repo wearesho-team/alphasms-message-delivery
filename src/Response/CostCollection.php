@@ -1,13 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Wearesho\Delivery\AlphaSms\Response;
 
 use Wearesho\BaseCollection;
 
-/**
- * Class CostCollection
- * @package Wearesho\Delivery\AlphaSms\Response
- */
 class CostCollection extends BaseCollection
 {
     public function type(): string

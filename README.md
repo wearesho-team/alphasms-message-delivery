@@ -1,7 +1,7 @@
 # AlphaSMS Integration
+[![Test & Lint](https://github.com/wearesho-team/alphasms-message-delivery/actions/workflows/php.yml/badge.svg?branch=master)](https://github.com/wearesho-team/alphasms-message-delivery/actions/workflows/php.yml)
 [![Latest Stable Version](https://poser.pugx.org/wearesho-team/alphasms-message-delivery/v/stable.png)](https://packagist.org/packages/wearesho-team/alphasms-message-delivery)
 [![Total Downloads](https://poser.pugx.org/wearesho-team/alphasms-message-delivery/downloads.png)](https://packagist.org/packages/wearesho-team/alphasms-message-delivery)
-[![Build Status](https://travis-ci.org/wearesho-team/alphasms-message-delivery.svg?branch=master)](https://travis-ci.org/wearesho-team/alphasms-message-delivery)
 [![codecov](https://codecov.io/gh/wearesho-team/alphasms-message-delivery/branch/master/graph/badge.svg)](https://codecov.io/gh/wearesho-team/alphasms-message-delivery)
 
 [wearesho-team/message-delivery](https://github.com/wearesho-team/message-delivery) implementation of
@@ -9,7 +9,7 @@
 
 ## Installation
 ```bash
-composer require wearsho-team/alphasms-message-delivery:^2.2.0
+composer require wearsho-team/alphasms-message-delivery:^2.4.0
 ```
 
 ## Usage
