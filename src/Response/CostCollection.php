@@ -27,4 +27,11 @@ class CostCollection extends BaseCollection
 
         return $sum;
     }
+
+    public function __toString(): string
+    {
+        return implode(PHP_EOL, array_map(function (Cost $cost) {
+            return (string)$cost;
+        }, (array)$this));
+    }
 }

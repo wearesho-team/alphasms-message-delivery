@@ -10,26 +10,44 @@ use Wearesho\Delivery\AlphaSms\Response;
 class CostCollectionTest extends TestCase
 {
     protected const AMOUNT = 0.500;
-    protected const RECIPIENT = 'recipient';
-    protected const CURRENCY = 'currency';
+    protected const RECIPIENT = '380000000000';
+    protected const CURRENCY = 'UAH';
 
     protected Response\CostCollection $fakeCostCollection;
 
     public function setUp(): void
     {
-        $this->fakeCostCollection = new Response\CostCollection();
+        $this->fakeCostCollection = new Response\CostCollection([
+            new Response\Cost(static::RECIPIENT, static::AMOUNT, static::CURRENCY),
+            new Response\Cost(static::RECIPIENT, static::AMOUNT, static::CURRENCY),
+        ]);
     }
 
 
     public function testSum(): void
     {
-        $this->fakeCostCollection
-            ->append(new Response\Cost(static::RECIPIENT, static::AMOUNT, static::CURRENCY))
-            ->append(new Response\Cost(static::RECIPIENT, static::AMOUNT, static::CURRENCY));
-
         $this->assertEquals(
             static::AMOUNT + static::AMOUNT,
             $this->fakeCostCollection->sum()
+        );
+    }
+
+    public function testJsonSerialize(): void
+    {
+        $this->assertEquals(
+            [
+                new Response\Cost(static::RECIPIENT, static::AMOUNT, static::CURRENCY),
+                new Response\Cost(static::RECIPIENT, static::AMOUNT, static::CURRENCY),
+            ],
+            $this->fakeCostCollection->jsonSerialize()
+        );
+    }
+
+    public function testToString(): void
+    {
+        $this->assertEquals(
+            "380000000000: 0.50 UAH\n380000000000: 0.50 UAH",
+            (string)$this->fakeCostCollection
         );
     }
 }
