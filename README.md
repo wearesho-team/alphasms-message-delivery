@@ -12,6 +12,15 @@
 composer require wearsho-team/alphasms-message-delivery:^3.0
 ```
 
+## Cli Usage
+You can use simple CLI tool to send messages and check balance:
+```php
+# Check balance
+./alphasms balance
+# Send messages interactively
+./alphasms send
+```
+
 ## Usage
 ### Configuration
 - [ConfigInterface](./src/ConfigInterface.php) have to be used to configure requests.
