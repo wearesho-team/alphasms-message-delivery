@@ -5,3 +5,5 @@
 /.gitignore export-ignore
 /.github export-ignore
 /LICENSE export-ignore
+/cli export-ignore
+/.env.example export-ignore
