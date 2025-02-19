@@ -16,17 +16,9 @@ class EnvironmentConfig extends Environment\Config implements ConfigInterface
     /**
      * @throws Environment\MissingEnvironmentException
      */
-    public function getLogin(): string
+    public function getApiKey(): string
     {
-        return $this->getEnv('LOGIN');
-    }
-
-    /**
-     * @throws Environment\MissingEnvironmentException
-     */
-    public function getPassword(): string
-    {
-        return $this->getEnv('PASSWORD');
+        return $this->getEnv("API_KEY");
     }
 
     /**

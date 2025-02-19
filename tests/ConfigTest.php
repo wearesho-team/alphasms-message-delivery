@@ -5,42 +5,50 @@ declare(strict_types=1);
 namespace Wearesho\Delivery\AlphaSms\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Wearesho\Delivery;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Wearesho\Delivery\AlphaSms\Config;
 
 class ConfigTest extends TestCase
 {
-    protected Delivery\AlphaSms\Config $config;
-
-    protected function setUp(): void
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function configDataProvider(): array
     {
-        parent::setUp();
-        $this->config = new Delivery\AlphaSms\Config();
+        return [
+            'basic configuration' => [
+                'api-key-123',
+                'TestSender',
+            ],
+            'empty values' => [
+                '',
+                '',
+            ],
+            'special characters' => [
+                'key@123#$%',
+                'Sender Name!',
+            ],
+        ];
     }
 
-    public function testGetLogin(): void
+    #[DataProvider('configDataProvider')]
+    public function testConfigGetters(string $apiKey, string $senderName): void
     {
-        $this->config->login = 'Login';
-        $this->assertEquals(
-            'Login',
-            $this->config->getLogin()
-        );
+        $config = new Config($apiKey, $senderName);
+
+        $this->assertSame($apiKey, $config->getApiKey());
+        $this->assertSame($senderName, $config->getSenderName());
     }
 
-    public function testGetPassword(): void
+    public function testConfigImmutability(): void
     {
-        $this->config->password = 'Password';
-        $this->assertEquals(
-            'Password',
-            $this->config->getPassword()
-        );
-    }
+        $config = new Config('test-key', 'test-sender');
 
-    public function testGetApiKey(): void
-    {
-        $this->config->apiKey = 'ApiKey';
-        $this->assertEquals(
-            'ApiKey',
-            $this->config->getApiKey()
-        );
+        $reflection = new \ReflectionClass($config);
+        $apiKeyProperty = $reflection->getProperty('apiKey');
+        $senderNameProperty = $reflection->getProperty('senderName');
+
+        $this->assertTrue($apiKeyProperty->isReadOnly());
+        $this->assertTrue($senderNameProperty->isReadOnly());
     }
 }
