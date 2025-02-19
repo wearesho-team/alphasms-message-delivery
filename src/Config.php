@@ -9,6 +9,7 @@ class Config implements ConfigInterface
     public function __construct(
         private readonly string $apiKey,
         private readonly string $senderName,
+        private readonly ?string $webhookUrl = null,
     ) {
     }
 
@@ -20,5 +21,10 @@ class Config implements ConfigInterface
     public function getApiKey(): string
     {
         return $this->apiKey;
+    }
+
+    public function getWebhookUrl(): ?string
+    {
+        return $this->webhookUrl;
     }
 }

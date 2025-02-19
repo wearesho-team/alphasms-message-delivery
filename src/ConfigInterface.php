@@ -9,4 +9,6 @@ interface ConfigInterface
     public function getSenderName(): string;
 
     public function getApiKey(): string;
+
+    public function getWebhookUrl(): ?string;
 }

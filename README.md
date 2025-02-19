@@ -29,10 +29,11 @@ Available implementations:
 - [EnvironmentConfig](./src/EnvironmentConfig.php) - loads configuration values from environment using 
 [getenv](http://php.net/manual/ru/function.getenv.php)
 
-| Variable             | Required | Description                                                     |
-|----------------------|----------|-----------------------------------------------------------------|
-| ALPHASMS_SENDER_NAME | yes      | Sender Name for SMS (alpha-name)                                |
-| ALPHASMS_API_KEY     | yes      | Can be received on [AlphaSMS Panel](https://alphasms.ua/panel/) |
+| Variable             | Required | Description                                                      |
+|----------------------|----------|------------------------------------------------------------------|
+| ALPHASMS_SENDER_NAME | yes      | Sender Name for SMS (alpha-name)                                 |
+| ALPHASMS_API_KEY     | yes      | Can be received on [AlphaSMS Panel](https://alphasms.ua/panel/)  |
+| ALPHASMS_WEBHOOK_URL | no       | URL for Webhooks with SMS statuses                               |
 
 ### Additional methods
 Besides implementing Delivery\ServiceInterface [Service](./src/Service.php) provides
