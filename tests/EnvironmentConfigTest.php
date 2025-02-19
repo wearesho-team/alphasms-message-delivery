@@ -38,4 +38,13 @@ class EnvironmentConfigTest extends TestCase
         $this->expectException(MissingEnvironmentException::class);
         $this->config->getSenderName();
     }
+
+    public function testWebhookUrl(): void
+    {
+        $testUrl = 'https://wearesho.com/alpha-sms-webhook';
+        putenv('ALPHASMS_WEBHOOK_URL=' . $testUrl);
+        $this->assertEquals($testUrl, $this->config->getWebhookUrl());
+        putenv('ALPHASMS_WEBHOOK_URL');
+        $this->assertNull($this->config->getWebhookUrl());
+    }
 }

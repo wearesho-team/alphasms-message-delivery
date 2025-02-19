@@ -11,7 +11,7 @@ use Wearesho\Delivery\AlphaSms\Config;
 class ConfigTest extends TestCase
 {
     /**
-     * @return array<string, array{string, string}>
+     * @return array<string, array{string, string, string|null}>
      */
     public static function configDataProvider(): array
     {
@@ -19,25 +19,29 @@ class ConfigTest extends TestCase
             'basic configuration' => [
                 'api-key-123',
                 'TestSender',
+                'https://wearesho.com/alpha-sms-webhook'
             ],
             'empty values' => [
                 '',
                 '',
+                null,
             ],
             'special characters' => [
                 'key@123#$%',
                 'Sender Name!',
+                null,
             ],
         ];
     }
 
     #[DataProvider('configDataProvider')]
-    public function testConfigGetters(string $apiKey, string $senderName): void
+    public function testConfigGetters(string $apiKey, string $senderName, ?string $webhook): void
     {
-        $config = new Config($apiKey, $senderName);
+        $config = new Config($apiKey, $senderName, $webhook);
 
         $this->assertSame($apiKey, $config->getApiKey());
         $this->assertSame($senderName, $config->getSenderName());
+        $this->assertEquals($webhook, $config->getWebhookUrl());
     }
 
     public function testConfigImmutability(): void

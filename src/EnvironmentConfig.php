@@ -28,4 +28,9 @@ class EnvironmentConfig extends Environment\Config implements ConfigInterface
     {
         return $this->getEnv('SENDER_NAME');
     }
+
+    public function getWebhookUrl(): ?string
+    {
+        return $this->getEnv('WEBHOOK_URL', static fn() => null);
+    }
 }
