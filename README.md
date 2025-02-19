@@ -9,22 +9,21 @@
 
 ## Installation
 ```bash
-composer require wearsho-team/alphasms-message-delivery:^2.4.0
+composer require wearsho-team/alphasms-message-delivery:^3.0
 ```
 
 ## Usage
 ### Configuration
-[ConfigInterface](./src/ConfigInterface.php) have to be used to configure requests.
+- [ConfigInterface](./src/ConfigInterface.php) have to be used to configure requests.
 Available implementations:
 - [Config](./src/Config.php) - simple implementation using class properties
 - [EnvironmentConfig](./src/EnvironmentConfig.php) - loads configuration values from environment using 
 [getenv](http://php.net/manual/ru/function.getenv.php)
 
-| Variable          | Required                  | Description                                                                             |
-|-------------------|---------------------------|-----------------------------------------------------------------------------------------|
-| ALPHASMS_LOGIN    | if empty ALPHASMS_API_KEY | should be used if API key cannot be generated                                           |
-| ALPHASMS_PASSWORD | if empty ALPHASMS_API_KEY | should be used if API key cannot be generated                                           |
-| ALPHASMS_API_KEY  | no                        | API key should be used. Can be received on [AlphaSMS Panel](https://alphasms.ua/panel/) |
+| Variable             | Required | Description                                                     |
+|----------------------|----------|-----------------------------------------------------------------|
+| ALPHASMS_SENDER_NAME | yes      | Sender Name for SMS (alpha-name)                                |
+| ALPHASMS_API_KEY     | yes      | Can be received on [AlphaSMS Panel](https://alphasms.ua/panel/) |
 
 ### Additional methods
 Besides implementing Delivery\ServiceInterface [Service](./src/Service.php) provides
@@ -33,9 +32,10 @@ Besides implementing Delivery\ServiceInterface [Service](./src/Service.php) prov
 
 use Wearesho\Delivery;
 
-$config = new Delivery\AlphaSms\Config;
-$config->login = '380000000000';
-$config->password = 'qwerty123';
+$config = new Delivery\AlphaSms\Config(
+    apiKey: "bb56a4369eb19***cfec6d1776bd25",
+    senderName: "alphasms" 
+);
 
 $service = new Delivery\AlphaSms\Service($config, new GuzzleHttp\Client);
 ```
@@ -53,32 +53,6 @@ $balance->getAmount();
 $balance->getCurrency();
 
 $message = (string)$balance; // will output "{amount} {currency}"
-```
-
-- Get cost of sending messages on concrete phone numbers
-```php
-<?php
-
-use Wearesho\Delivery;
-
-/** @var Delivery\AlphaSms\Service $service */
-/** @var Delivery\AlphaSms\Response\CostCollection $costs */
-
-$costs = $service->cost([
-    '380000000001',
-    '380000000002'
-]); // fetch costs of sending message on concrete phones
-
-$sum = $costs->sum();
-
-/** @var Delivery\AlphaSms\Response\Cost $singleCost */
-foreach ($costs as $singleCost) {
-    $singleCost->getRecipient();
-    $singleCost->getAmount();
-    $singleCost->getCurrency();
-    
-    $singleCost->jsonSerialize(); // serialize to json
-}
 ```
 
 ## Authors

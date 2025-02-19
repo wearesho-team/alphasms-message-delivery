@@ -8,7 +8,5 @@ interface ConfigInterface
 {
     public function getSenderName(): string;
 
-    public function getLogin(): string;
-
-    public function getPassword(): string;
+    public function getApiKey(): string;
 }

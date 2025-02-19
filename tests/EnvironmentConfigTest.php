@@ -13,8 +13,7 @@ use Wearesho\Delivery;
  */
 class EnvironmentConfigTest extends TestCase
 {
-    /** @var Delivery\AlphaSms\EnvironmentConfig */
-    protected $config;
+    protected Delivery\AlphaSms\EnvironmentConfig $config;
 
     protected function setUp(): void
     {
@@ -22,16 +21,13 @@ class EnvironmentConfigTest extends TestCase
         $this->config = new Delivery\AlphaSms\EnvironmentConfig();
     }
 
-    public function testGetLogin(): void
+    public function testGetApiKey(): void
     {
-        putenv('ALPHASMS_LOGIN=testLogin');
-        $this->assertEquals('testLogin', $this->config->getLogin());
-    }
-
-    public function testGetPassword(): void
-    {
-        putenv('ALPHASMS_PASSWORD=Qwerty123');
-        $this->assertEquals('Qwerty123', $this->config->getPassword());
+        putenv('ALPHASMS_API_KEY=testApiKey');
+        $this->assertEquals('testApiKey', $this->config->getApiKey());
+        putenv('ALPHASMS_API_KEY');
+        $this->expectException(MissingEnvironmentException::class);
+        $this->config->getApiKey();
     }
 
     public function testSender(): void
