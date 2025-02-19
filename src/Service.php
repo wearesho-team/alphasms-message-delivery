@@ -8,144 +8,146 @@ use Psr\Http\Message\ResponseInterface;
 use Wearesho\Delivery;
 use GuzzleHttp;
 
-class Service implements Delivery\ServiceInterface
+class Service implements Delivery\Batch\ServiceInterface
 {
-    protected const BASE_URI = 'https://alphasms.ua/api/xml.php';
+    public const NAME = 'alphasms';
 
-    protected GuzzleHttp\ClientInterface $client;
+    protected const BASE_URI = 'https://alphasms.ua/api/json.php';
 
-    protected ConfigInterface $config;
-
-    public function __construct(ConfigInterface $config, GuzzleHttp\ClientInterface $client)
-    {
-        $this->client = $client;
-        $this->config = $config;
+    public function __construct(
+        private readonly ConfigInterface $config,
+        private readonly GuzzleHttp\ClientInterface $client
+    ) {
     }
 
-    /**
-     * @throws Delivery\Exception
-     * @throws GuzzleHttp\Exception\GuzzleException
-     */
-    public function send(Delivery\MessageInterface $message): void
+    public function name(): string
     {
-        if (!preg_match('/^(\+)?380\d{9}$/', $message->getRecipient())) {
-            throw new Delivery\Exception("Unsupported recipient format");
+        return static::NAME;
+    }
+
+    public function balance(): Delivery\BalanceInterface
+    {
+        $response = $this->sendRequest([
+            ['type' => 'balance',],
+        ]);
+        $balanceResponse = reset($response);
+        if (!array_key_exists('success', $balanceResponse)) {
+            throw new Delivery\Exception(
+                "Invalid Balance Response body: missing success key",
+                4001,
+            );
         }
-
-        $requestObject = $this->initXmlRequestHead();
-        $operation = $requestObject->addChild('message');
-        $msg = $operation->addChild('msg', $message->getText());
-        $msg->addAttribute('recipient', $message->getRecipient());
-        $msg->addAttribute(
-            'sender',
-            $message instanceof Delivery\ContainsSenderName
-                ? $message->getSenderName()
-                : $this->config->getSenderName()
-        );
-        $msg->addAttribute('type', "0");
-
-        $this->fetchBody(
-            $this->client->send($this->formRequest($requestObject))
-        );
-    }
-
-    /**
-     * @throws Delivery\Exception
-     * @throws Exception
-     * @throws GuzzleHttp\Exception\GuzzleException
-     */
-    public function balance(): Delivery\AlphaSms\Response\Balance
-    {
-        $requestObject = $this->initXmlRequestHead();
-        $requestObject->addChild('balance');
-
-        $balanceXml = $this->fetchBody(
-            $this->client->send($this->formRequest($requestObject))
-        )->{Response\Balance::TAG};
-
-        return new Response\Balance(
-            (float)$balanceXml->{Response\Balance::AMOUNT},
-            (string)$balanceXml->{Response\Balance::CURRENCY}
-        );
-    }
-
-    /**
-     * @param string[] $recipients
-     *
-     * @return Response\CostCollection
-     * @throws Delivery\Exception
-     * @throws Exception
-     * @throws GuzzleHttp\Exception\GuzzleException
-     */
-    public function cost(array $recipients): Response\CostCollection
-    {
-        $requestObject = $this->initXmlRequestHead();
-        $requestObject->addChild('prices');
-
-        foreach ($recipients as $recipient) {
-            $requestObject->prices->addChild('phone', (string)$recipient);
+        if (!array_key_exists('data', $balanceResponse) || !is_array($balanceResponse['data'])) {
+            throw new Delivery\Exception(
+                "Invalid Balance Response body: missing success key",
+                4002,
+            );
         }
-
-        $costs = $this->fetchBody(
-            $this->client->send($this->formRequest($requestObject))
-        )->{Response\Cost::WRAPPER};
-
-        $costCollection = new Response\CostCollection();
-
-        foreach ($costs->{Response\Cost::PHONE} as $cost) {
-            $attributes = $cost->attributes();
-            $costCollection->append(new Response\Cost(
-                (string)$cost,
-                (float)$attributes[Response\Cost::PRICE],
-                (string)$attributes[Response\Cost::CURRENCY]
-            ));
+        $balance = $balanceResponse['data'];
+        if (!array_key_exists('amount', $balance)) {
+            throw new Delivery\Exception(
+                "Invalid Balance Response data: missing amount key",
+                4011
+            );
         }
-
-        return $costCollection;
-    }
-
-    protected function formRequest(\SimpleXMLElement $body): GuzzleHttp\Psr7\Request
-    {
-        return new GuzzleHttp\Psr7\Request(
-            'GET',
-            static::BASE_URI,
-            ['Content-Type' => 'application/xml',],
-            $body->saveXML()
+        if (!array_key_exists('currency', $balance)) {
+            throw new Delivery\Exception(
+                "Invalid Balance Response data: missing currency key",
+                4012
+            );
+        }
+        return new Delivery\Balance(
+            (float)$balance['amount'],
+            $balance['currency'],
         );
     }
 
-    /**
-     * @throws Delivery\Exception
-     * @throws Exception
-     */
-    protected function fetchBody(ResponseInterface $response): \SimpleXMLElement
+    public function batch(iterable $messages): iterable
     {
-        $body = (string)$response->getBody();
+        // TODO: Implement batch() method.
+    }
 
+    public function send(Delivery\MessageInterface $message): Delivery\ResultInterface
+    {
+        // TODO: Implement send() method.
+    }
+
+    // region Internal API methods
+    private function sendRequest(array $data): array
+    {
+        $body = [
+            'auth' => $this->config->getApiKey(),
+            'data' => $data,
+        ];
         try {
-            $xml = simplexml_load_string($body);
-        } catch (\Throwable $exception) {
-            throw new Delivery\Exception("Response contain invalid body: " . $body, Exception::ERR_FORMAT, $exception);
-        }
-
-        if ($xml->error) {
-            $errorCode = $xml->error[0]->__toString();
-            throw new Exception(
-                "AlphaSMS Sending Error: " . $errorCode,
-                (int)$errorCode
+            $response = $this->parseResponse(
+                $this->client->request('POST', static::BASE_URI, [
+                    GuzzleHttp\RequestOptions::JSON => $body,
+                ])
+            );
+        } catch (GuzzleHttp\Exception\GuzzleException $e) {
+            throw new Delivery\Exception(
+                $e->getMessage(),
+                $e->getCode(),
+                $e
             );
         }
 
-        return $xml;
+        $this->validateResponse($response);
+        return $response['data'];
     }
 
-    protected function initXmlRequestHead(): \SimpleXMLElement
+    private function parseResponse(ResponseInterface $response): array
     {
-        $requestObject = new \SimpleXMLElement('<package></package>');
-
-        $requestObject->addAttribute('login', $this->config->getLogin());
-        $requestObject->addAttribute('password', $this->config->getPassword());
-
-        return $requestObject;
+        try {
+            return json_decode(
+                $response->getBody()->__toString(),
+                true,
+                32,
+                JSON_THROW_ON_ERROR
+            );
+        } catch (\JsonException $exception) {
+            throw new Delivery\Exception(
+                "Invalid JSON in response body",
+                $exception->getCode(),
+                $exception
+            );
+        }
     }
+
+    private function validateResponse(array &$responseBody): void
+    {
+        if (!array_key_exists('success', $responseBody)) {
+            throw new Delivery\Exception(
+                "Invalid body: missing success key",
+                1001
+            );
+        }
+        if ($responseBody['success'] !== true) {
+            $errorMessage = $responseBody['error'] ?? "Unknown error, missing error key in response.";
+            throw new Delivery\Exception(
+                $errorMessage,
+                2001
+            );
+        }
+        if (!array_key_exists('data', $responseBody)) {
+            throw new Delivery\Exception(
+                "Invalid body: missing data key",
+                1002
+            );
+        }
+        if (!is_array($responseBody['data'])) {
+            throw new Delivery\Exception(
+                "Invalid body: data is not an array.",
+                3001
+            );
+        }
+        if (count($responseBody['data']) < 1) {
+            throw new Delivery\Exception(
+                "Invalid body: data is empty.",
+                3002
+            );
+        }
+    }
+    // endregion
 }
