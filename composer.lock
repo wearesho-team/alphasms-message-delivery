@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9177a6e33be0110d4ac3760ed77ec484",
+    "content-hash": "7627a72fccd495ac32c460ce14f906d2",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -1280,16 +1280,16 @@
         },
         {
             "name": "wearesho-team/message-delivery",
-            "version": "2.1.0",
+            "version": "2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wearesho-team/message-delivery.git",
-                "reference": "bb9287359110a58cc54a5901d094d3179bacd41d"
+                "reference": "08c51fe4c0bd4420e9320e802a6749dbfb7483a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wearesho-team/message-delivery/zipball/bb9287359110a58cc54a5901d094d3179bacd41d",
-                "reference": "bb9287359110a58cc54a5901d094d3179bacd41d",
+                "url": "https://api.github.com/repos/wearesho-team/message-delivery/zipball/08c51fe4c0bd4420e9320e802a6749dbfb7483a0",
+                "reference": "08c51fe4c0bd4420e9320e802a6749dbfb7483a0",
                 "shasum": ""
             },
             "require": {
@@ -1324,9 +1324,9 @@
             "description": "Message Delivery Interfaces",
             "support": {
                 "issues": "https://github.com/wearesho-team/message-delivery/issues",
-                "source": "https://github.com/wearesho-team/message-delivery/tree/2.1.0"
+                "source": "https://github.com/wearesho-team/message-delivery/tree/2.2.0"
             },
-            "time": "2025-02-19T17:13:36+00:00"
+            "time": "2025-02-19T19:00:10+00:00"
         }
     ],
     "packages-dev": [
