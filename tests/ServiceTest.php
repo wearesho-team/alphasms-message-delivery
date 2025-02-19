@@ -5,187 +5,105 @@ declare(strict_types=1);
 namespace Wearesho\Delivery\AlphaSms\Tests;
 
 use GuzzleHttp;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Wearesho\Delivery;
 
-/**
- * @coversDefaultClass \Wearesho\Delivery\AlphaSms\Service
- */
 class ServiceTest extends TestCase
 {
-    protected const ERR_UNKNOWN = 200;
-    protected const ERR_FORMAT = 201;
+    private const TEST_SENDER_NAME = 'testSenderName';
+    private const TEST_API_KEY = '96ac8bf5-4347-4c48-aa8e-1147aecc3bd2'; // Random UUID
 
-    protected Delivery\AlphaSms\Service $service;
-
-    protected Delivery\AlphaSms\Config $config;
-
-    protected GuzzleHttp\Handler\MockHandler $mock;
-
-    protected array $container;
+    private GuzzleHttp\ClientInterface&MockObject $client;
+    private Delivery\AlphaSms\Service $service;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->config = new Delivery\AlphaSms\Config();
-        $this->config->login = 'Login';
-        $this->config->password = 'Password';
-
-        $this->mock = new GuzzleHttp\Handler\MockHandler();
-        $this->container = [];
-        $history = GuzzleHttp\Middleware::history($this->container);
-
-        $stack = new GuzzleHttp\HandlerStack($this->mock);
-        $stack->push($history);
-
-        $this->service = new Delivery\AlphaSms\Service($this->config, new GuzzleHttp\Client([
-            'handler' => $stack,
-        ]));
+        $this->client = $this->createMock(GuzzleHttp\ClientInterface::class);
+        $this->service = new Delivery\AlphaSms\Service(
+            new Delivery\AlphaSms\Config(
+                apiKey: self::TEST_API_KEY,
+                senderName: self::TEST_SENDER_NAME
+            ),
+            $this->client
+        );
     }
 
-    public function testSendMessage(): void
+    public static function balanceDataProvider(): array
     {
-        $this->mock->append(
-            new GuzzleHttp\Psr7\Response(
+        return [
+            [
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'balance',
+                        ]
+                    ],
+                ],
+                <<<JSON
+{
+    "success": true,
+    "data": [
+        {
+            "success": true,
+            "data": {
+                "amount": 31.1683,
+                "currency": "UAH"
+            }
+        }
+    ]
+}
+JSON,
+                new Delivery\Balance(31.1683, "UAH"),
+            ],
+            [
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'balance',
+                        ]
+                    ],
+                ],
+                <<<JSON
+{
+    "success": false,
+    "error": "Access denied"
+}
+JSON,
+                null,
+                new Delivery\Exception("Access denied", 2001),
+            ],
+        ];
+    }
+
+    #[DataProvider('balanceDataProvider')]
+    public function testBalance(
+        array $expectedRequestBody,
+        string $mockResponseBody,
+        ?Delivery\BalanceInterface $expectedBalance = null,
+        ?Delivery\Exception $expectedException = null
+    ): void {
+        $this->client
+            ->expects($this->once())
+            ->method('request')
+            ->with('POST', 'https://alphasms.ua/api/json.php', [
+                GuzzleHttp\RequestOptions::JSON => $expectedRequestBody,
+            ])
+            ->willReturn(new GuzzleHttp\Psr7\Response(
                 200,
                 [],
-                '<?xml version="1.0" encoding="utf-8" ?><package><status><msg id="1234" sms_id="0" sms_count="1" date_completed="200914T15:27:03">102</msg><msg sms_id="1234568" sms_count="1">1</msg></status></package>'  // phpcs:ignore
-            )
-        );
-        $message = new Delivery\Message('Some Text', '380000000000');
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $this->service->send($message);
+                $mockResponseBody
+            ));
 
-        /** @var GuzzleHttp\Psr7\Request $request */
-        $request = $this->container[0]['request'];
-        $this->assertEquals(
-            '<?xml version="1.0"?>
-<package login="Login" password="Password"><message><msg recipient="380000000000" sender="test" type="0">Some Text</msg></message></package>' // phpcs:ignore
-            . '
-',
-            (string)$request->getBody()
-        );
-    }
+        if (!is_null($expectedException)) {
+            $this->expectExceptionObject($expectedException);
+        }
 
-    public function testBalance(): void
-    {
-        $expectAmount = 1200.15;
-        $expectCurrency = 'UAH';
-        $this->mock->append(
-            $this->mockResponse("<balance><amount>$expectAmount</amount><currency>$expectCurrency</currency></balance>")
-        );
-
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $actualBalance = $this->service->balance();
-
-        $this->assertEquals($expectAmount, $actualBalance->getAmount());
-        $this->assertEquals($expectCurrency, $actualBalance->getCurrency());
-        $this->assertEquals(
-            "1,200.15 $expectCurrency",
-            (string)$actualBalance
-        );
-        $this->assertEquals(
-            [
-                'amount' => $expectAmount,
-                'currency' => $expectCurrency,
-            ],
-            $actualBalance->jsonSerialize()
-        );
-    }
-
-    public function testFailedBalance(): void
-    {
-        $this->expectException(Delivery\AlphaSms\Exception::class);
-        $this->expectExceptionMessage("AlphaSMS Sending Error: " . static::ERR_UNKNOWN);
-        $this->expectExceptionCode(static::ERR_UNKNOWN);
-
-        $this->mock->append(
-            $this->mockFailedResponse(static::ERR_UNKNOWN)
-        );
-
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $this->service->balance();
-    }
-
-    public function testError(): void
-    {
-        $this->mock->append(
-            $this->mockFailedResponse(static::ERR_FORMAT)
-        );
-        $message = new Delivery\Message('Some Text', '380000000000');
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $this->expectException(Delivery\Exception::class);
-        $this->expectExceptionCode(201);
-        $this->expectExceptionMessage('AlphaSMS Sending Error: 201');
-        $this->service->send($message);
-    }
-
-    public function testCostCollection(): void
-    {
-        $this->mock->append(
-            $this->mockResponse(
-                '<prices>
-                    <phone price="0.28" currency="UAH">380501234567</phone>
-                    <phone price="1.6" currency="UAH">37122123456</phone>
-                </prices>'
-            )
-        );
-
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $costs = $this->service->cost([
-            '380501234567',
-            '37122123456'
-        ]);
-
-        $this->assertEquals($costs[0]->getRecipient(), '380501234567');
-        $this->assertEquals($costs[0]->getAmount(), 0.28);
-        $this->assertEquals($costs[1]->getRecipient(), '37122123456');
-        $this->assertEquals($costs[1]->getAmount(), 1.6);
-
-        /** @var GuzzleHttp\Psr7\Request $request */
-        $request = $this->container[0]['request'];
-        $this->assertEquals(
-            "<?xml version=\"1.0\"?>\n<package login=\"Login\" password=\"Password\"><prices><phone>380501234567</phone><phone>37122123456</phone></prices></package>\n", // phpcs:ignore
-            (string)$request->getBody()
-        );
-    }
-
-    public function testInvalidResponse(): void
-    {
-        $this->expectException(Delivery\Exception::class);
-        $this->expectExceptionMessage(
-            'Response contain invalid body: <?xml version="1.0" encoding="utf-8" ?><package><invalid</package>'
-        );
-        $this->expectExceptionCode(Delivery\AlphaSms\Exception::ERR_FORMAT);
-
-        $this->mock->append(
-            $this->mockResponse('<invalid')
-        );
-
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $this->service->send(new Delivery\Message('content', '380000000000'));
-    }
-
-    public function testInvalidRecipient(): void
-    {
-        $message = new Delivery\Message("Text", "123");
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $this->expectException(Delivery\Exception::class);
-        $this->expectExceptionMessage('Unsupported recipient format');
-        $this->service->send($message);
-    }
-
-    protected function mockFailedResponse(int $code): GuzzleHttp\Psr7\Response
-    {
-        return $this->mockResponse("<error>$code</error>");
-    }
-
-    protected function mockResponse(string $content): GuzzleHttp\Psr7\Response
-    {
-        return new GuzzleHttp\Psr7\Response(
-            200,
-            [],
-            "<?xml version=\"1.0\" encoding=\"utf-8\" ?><package>$content</package>"
-        );
+        $balance = $this->service->balance();
+        $this->assertEquals($expectedBalance, $balance);
     }
 }
