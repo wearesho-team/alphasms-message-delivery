@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+use Wearesho\Delivery\AlphaSms;
+use Symfony\Component\Console\Application;
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createUnsafeImmutable(__DIR__);
+$dotenv->safeLoad();
+$dotenv->required(['ALPHASMS_API_KEY', 'ALPHASMS_SENDER_NAME']);
+
+$config = new AlphaSms\EnvironmentConfig();
+$service = new AlphaSms\Service($config, new \GuzzleHttp\Client());
+
+$application = new Application("AlphaSMS CLI Tool", "3.0");
+$application->addCommands([
+    new AlphaSms\Console\CheckBalanceCommand($service),
+]);
+$application->run();
