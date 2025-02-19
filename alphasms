@@ -17,5 +17,6 @@ $service = new AlphaSms\Service($config, new \GuzzleHttp\Client());
 $application = new Application("AlphaSMS CLI Tool", "3.0");
 $application->addCommands([
     new AlphaSms\Console\CheckBalanceCommand($service),
+    new AlphaSms\Console\SendMessageCommand($service),
 ]);
 $application->run();
