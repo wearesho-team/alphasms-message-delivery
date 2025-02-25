@@ -66,6 +66,17 @@ class Service implements Delivery\Batch\ServiceInterface
         );
     }
 
+    /**
+     * @throws Delivery\Exception
+     */
+    public function voiceOtp(VoiceOtp\Request $request): VoiceOtp\Response
+    {
+        $response = $this->sendRequest([
+            $request,
+        ]);
+        return VoiceOtp\Response::parse(reset($response)['data']);
+    }
+
     public function send(Delivery\MessageInterface $message): Delivery\ResultInterface
     {
         [$result] = [...$this->batch([$message])];
