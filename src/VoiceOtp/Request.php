@@ -29,7 +29,7 @@ class Request implements \JsonSerializable
         return [
             'type' => self::TYPE,
             'id' => $this->id(),
-            'phoneNumber' => $this->phoneNumber(),
+            'phone' => (int)$this->phoneNumber(),
         ];
     }
 }

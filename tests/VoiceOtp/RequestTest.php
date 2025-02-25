@@ -11,7 +11,7 @@ class RequestTest extends TestCase
 {
     private Request $request;
     private int $id = 12345;
-    private string $phoneNumber = '+380991234567';
+    private string $phoneNumber = '380991234567';
 
     protected function setUp(): void
     {
@@ -36,7 +36,7 @@ class RequestTest extends TestCase
         $expected = [
             'type' => Request::TYPE,
             'id' => $this->id,
-            'phoneNumber' => $this->phoneNumber,
+            'phone' => (int)$this->phoneNumber,
         ];
 
         $this->assertSame($expected, $this->request->jsonSerialize());
