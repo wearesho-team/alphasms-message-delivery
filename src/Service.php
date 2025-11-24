@@ -92,10 +92,8 @@ class Service implements Delivery\Batch\ServiceInterface
     {
         $messagesArray = [];
         $requests = [];
-        $i = 0;
-        $time = Carbon::now()->getTimestamp();
         foreach ($messages as $message) {
-            $key = "i_" . $time . '_' . $i++;
+            $key = "i_" . uniqid('', true);
             $messagesArray[$key] = $message;
             $requests[] = $this->getRequestBody($key, $message);
         }
