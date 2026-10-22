@@ -19,5 +19,6 @@ $application->addCommands([
     new AlphaSms\Console\CheckBalanceCommand($service),
     new AlphaSms\Console\SendMessageCommand($service),
     new AlphaSms\Console\VoiceOtpCommand($service),
+    new AlphaSms\Console\TelegramOtpCommand($service),
 ]);
 $application->run();
