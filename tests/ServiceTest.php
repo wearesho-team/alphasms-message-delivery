@@ -292,6 +292,7 @@ JSON,
                         ],
                     ],
                 ],
+                // Actual response returned by API (differs from documentation)
                 <<<JSON
 {
     "success": true,
@@ -299,16 +300,13 @@ JSON,
         {
             "success": true,
             "data": {
-                "id": 100500,
-                "msg_id": 123456789,
-                "data": 1,
-                "parts": 1
+                "msg_id": 1590809016
             }
         }
     ]
 }
 JSON,
-                ['id' => 100500, 'messageId' => '123456789'],
+                ['messageId' => '1590809016'],
             ],
             'request with lifetime and webhook' => [
                 new Delivery\AlphaSms\TelegramOtp\Request(
@@ -347,7 +345,7 @@ JSON,
     ]
 }
 JSON,
-                ['id' => 100501, 'messageId' => '123456790'],
+                ['messageId' => '123456790'],
             ],
             'access denied' => [
                 new Delivery\AlphaSms\TelegramOtp\Request(
