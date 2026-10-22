@@ -19,6 +19,10 @@ You can use simple CLI tool to send messages and check balance:
 ./alphasms balance
 # Send messages interactively
 ./alphasms send
+# Send OTP via voice call
+./alphasms voice-otp 380991234567
+# Send OTP via Telegram
+./alphasms telegram-otp 380991234567
 ```
 
 ## Usage
@@ -104,6 +108,81 @@ $ ./alphasms voice-otp 380991234567
 
 # With custom request ID
 $ ./alphasms voice-otp 380991234567 --id=12345
+```
+
+## TelegramOTP Service
+
+This section describes how to send one-time passwords (OTP) via Telegram
+using [AlphaSMS Telegram OTP](https://docs.alphasms.net/api/json/telegram/otp/) API.
+
+Unlike Voice OTP, the code is generated on your side and delivered to the recipient as a Telegram message.
+
+### Usage
+
+```php
+<?php
+
+/** @var \Wearesho\Delivery\AlphaSms\Service $service */
+
+// Create a Telegram OTP request
+$request = new \Wearesho\Delivery\AlphaSms\TelegramOtp\Request(
+    id: 12345,                   // Unique identifier for the request
+    phoneNumber: '380991234567', // Phone number to receive the Telegram message
+    code: '123456',              // OTP code to send (4-8 digits)
+    lifetime: 300,               // Optional: Telegram message lifetime in seconds (min 60)
+    webhookUrl: 'https://example.com/alphasms-webhook' // Optional: URL for delivery status webhooks
+);
+
+try {
+    // Send the Telegram OTP request
+    $response = $service->telegramOtp($request);
+
+    // Get AlphaSMS message ID (can be used to match delivery status webhooks)
+    $messageId = $response->messageId();
+
+    echo "Telegram OTP sent successfully. Message ID: {$messageId}";
+} catch (\Wearesho\Delivery\Exception $e) {
+    // Handle delivery exceptions
+    echo "Failed to send Telegram OTP: " . $e->getMessage();
+}
+
+```
+
+#### Request Parameters
+
+- `id` (int): A unique identifier for the request in your system.
+- `phoneNumber` (string): The recipient's phone number in international format (e.g., 380991234567).
+- `code` (string): The one-time password, from 4 to 8 digits.
+- `lifetime` (int|null): Telegram message lifetime in seconds, minimum 60. AlphaSMS default is 2 days.
+- `webhookUrl` (string|null): URL for delivery status webhooks.
+If not set, `ConfigInterface::getWebhookUrl()` (`ALPHASMS_WEBHOOK_URL`) is used.
+
+The request constructor throws `\InvalidArgumentException` if `code` or `lifetime` are invalid.
+
+#### Response Properties
+
+- `id()` (int): Returns the request identifier from your system.
+- `messageId()` (string): Returns the AlphaSMS message identifier.
+
+#### Error Handling
+
+The telegramOtp() method may throw a \Wearesho\Delivery\Exception in the following cases:
+
+- Network connectivity issues
+- Service provider errors (e.g., `Access denied` with code 2001, message-level errors with code 2002)
+- Invalid response format
+
+#### Command Line Interface
+
+For command-line usage, you can use the provided
+[Symfony Console command](./cli/TelegramOtpCommand.php):
+
+```bash
+# Basic usage (random 6-digit code will be generated)
+$ ./alphasms telegram-otp 380991234567
+
+# With custom code, request ID and message lifetime
+$ ./alphasms telegram-otp 380991234567 --code=4321 --id=12345 --lifetime=300
 ```
 
 ## Authors
