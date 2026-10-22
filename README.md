@@ -161,7 +161,6 @@ The request constructor throws `\InvalidArgumentException` if `code` or `lifetim
 
 #### Response Properties
 
-- `id()` (int): Returns the request identifier from your system.
 - `messageId()` (string): Returns the AlphaSMS message identifier.
 
 #### Error Handling
