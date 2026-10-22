@@ -272,6 +272,377 @@ JSON,
         $this->assertEquals($expectedBalance, $balance);
     }
 
+    public static function telegramOtpDataProvider(): array
+    {
+        return [
+            'minimal request' => [
+                new Delivery\AlphaSms\TelegramOtp\Request(
+                    id: 100500,
+                    phoneNumber: '380991234567',
+                    code: '123456',
+                ),
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'telegram',
+                            'id' => 100500,
+                            'phone' => 380991234567,
+                            'message' => '123456',
+                        ],
+                    ],
+                ],
+                <<<JSON
+{
+    "success": true,
+    "data": [
+        {
+            "success": true,
+            "data": {
+                "id": 100500,
+                "msg_id": 123456789,
+                "data": 1,
+                "parts": 1
+            }
+        }
+    ]
+}
+JSON,
+                ['id' => 100500, 'messageId' => '123456789'],
+            ],
+            'request with lifetime and webhook' => [
+                new Delivery\AlphaSms\TelegramOtp\Request(
+                    id: 100501,
+                    phoneNumber: '380991234567',
+                    code: '0042',
+                    lifetime: 300,
+                    webhookUrl: 'https://wearesho.com/alpha-sms-webhook',
+                ),
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'telegram',
+                            'id' => 100501,
+                            'phone' => 380991234567,
+                            'message' => '0042',
+                            'telegram_lifetime' => 300,
+                            'hook' => 'https://wearesho.com/alpha-sms-webhook',
+                        ],
+                    ],
+                ],
+                <<<JSON
+{
+    "success": true,
+    "data": [
+        {
+            "success": true,
+            "data": {
+                "id": 100501,
+                "msg_id": 123456790,
+                "data": 1,
+                "parts": 1
+            }
+        }
+    ]
+}
+JSON,
+                ['id' => 100501, 'messageId' => '123456790'],
+            ],
+            'access denied' => [
+                new Delivery\AlphaSms\TelegramOtp\Request(
+                    id: 100502,
+                    phoneNumber: '380991234567',
+                    code: '1234',
+                ),
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'telegram',
+                            'id' => 100502,
+                            'phone' => 380991234567,
+                            'message' => '1234',
+                        ],
+                    ],
+                ],
+                <<<JSON
+{
+    "success": false,
+    "error": "Access denied"
+}
+JSON,
+                null,
+                new Delivery\Exception("Access denied", 2001),
+            ],
+            'response item error' => [
+                new Delivery\AlphaSms\TelegramOtp\Request(
+                    id: 100503,
+                    phoneNumber: '380991234567',
+                    code: '1234',
+                ),
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'telegram',
+                            'id' => 100503,
+                            'phone' => 380991234567,
+                            'message' => '1234',
+                        ],
+                    ],
+                ],
+                <<<JSON
+{
+    "success": true,
+    "data": [
+        {
+            "success": false,
+            "error": "Not enough money",
+            "data": {
+                "id": 100503
+            }
+        }
+    ]
+}
+JSON,
+                null,
+                new Delivery\Exception("Not enough money", 2002),
+            ],
+            'response item error without message' => [
+                new Delivery\AlphaSms\TelegramOtp\Request(
+                    id: 100504,
+                    phoneNumber: '380991234567',
+                    code: '1234',
+                ),
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'telegram',
+                            'id' => 100504,
+                            'phone' => 380991234567,
+                            'message' => '1234',
+                        ],
+                    ],
+                ],
+                <<<JSON
+{
+    "success": true,
+    "data": [
+        {
+            "success": false
+        }
+    ]
+}
+JSON,
+                null,
+                new Delivery\Exception("Unknown error, missing error key in responseItem.", 2002),
+            ],
+            'response item without success key' => [
+                new Delivery\AlphaSms\TelegramOtp\Request(
+                    id: 100505,
+                    phoneNumber: '380991234567',
+                    code: '1234',
+                ),
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'telegram',
+                            'id' => 100505,
+                            'phone' => 380991234567,
+                            'message' => '1234',
+                        ],
+                    ],
+                ],
+                <<<JSON
+{
+    "success": true,
+    "data": [
+        {
+            "data": {
+                "id": 100505,
+                "msg_id": 123456791
+            }
+        }
+    ]
+}
+JSON,
+                null,
+                new Delivery\Exception("Missing success key in responseItem", 8001),
+            ],
+            'response item without data key' => [
+                new Delivery\AlphaSms\TelegramOtp\Request(
+                    id: 100506,
+                    phoneNumber: '380991234567',
+                    code: '1234',
+                ),
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'telegram',
+                            'id' => 100506,
+                            'phone' => 380991234567,
+                            'message' => '1234',
+                        ],
+                    ],
+                ],
+                <<<JSON
+{
+    "success": true,
+    "data": [
+        {
+            "success": true
+        }
+    ]
+}
+JSON,
+                null,
+                new Delivery\Exception("Missing data key in responseItem", 8002),
+            ],
+            'response item without msg_id' => [
+                new Delivery\AlphaSms\TelegramOtp\Request(
+                    id: 100507,
+                    phoneNumber: '380991234567',
+                    code: '1234',
+                ),
+                [
+                    'auth' => self::TEST_API_KEY,
+                    'data' => [
+                        [
+                            'type' => 'telegram',
+                            'id' => 100507,
+                            'phone' => 380991234567,
+                            'message' => '1234',
+                        ],
+                    ],
+                ],
+                <<<JSON
+{
+    "success": true,
+    "data": [
+        {
+            "success": true,
+            "data": {
+                "id": 100507
+            }
+        }
+    ]
+}
+JSON,
+                null,
+                new Delivery\Exception("Missing required 'msg_id' field in TelegramOTP response."),
+            ],
+        ];
+    }
+
+    #[DataProvider('telegramOtpDataProvider')]
+    public function testTelegramOtp(
+        Delivery\AlphaSms\TelegramOtp\Request $request,
+        array $expectedRequestBody,
+        string $mockResponseBody,
+        ?array $expectedResponse = null,
+        ?Delivery\Exception $expectedException = null
+    ): void {
+        $this->configureClient($expectedRequestBody, $mockResponseBody);
+
+        if (!is_null($expectedException)) {
+            $this->expectExceptionObject($expectedException);
+        }
+
+        $response = $this->service->telegramOtp($request);
+        $this->assertSame($expectedResponse, $response->jsonSerialize());
+    }
+
+    public function testTelegramOtpUsesConfigWebhookUrl(): void
+    {
+        $service = new Delivery\AlphaSms\Service(
+            new Delivery\AlphaSms\Config(
+                self::TEST_API_KEY,
+                self::TEST_SENDER_NAME,
+                'https://wearesho.com/config-webhook',
+            ),
+            $this->client
+        );
+        $this->configureClient(
+            [
+                'auth' => self::TEST_API_KEY,
+                'data' => [
+                    [
+                        'type' => 'telegram',
+                        'id' => 100500,
+                        'phone' => 380991234567,
+                        'message' => '123456',
+                        'hook' => 'https://wearesho.com/config-webhook',
+                    ],
+                ],
+            ],
+            '{"success":true,"data":[{"success":true,"data":{"id":100500,"msg_id":123456789,"data":1,"parts":1}}]}'
+        );
+
+        $response = $service->telegramOtp(new Delivery\AlphaSms\TelegramOtp\Request(
+            id: 100500,
+            phoneNumber: '380991234567',
+            code: '123456',
+        ));
+
+        $this->assertSame('123456789', $response->messageId());
+    }
+
+    public function testTelegramOtpPrefersRequestWebhookUrlOverConfig(): void
+    {
+        $service = new Delivery\AlphaSms\Service(
+            new Delivery\AlphaSms\Config(
+                self::TEST_API_KEY,
+                self::TEST_SENDER_NAME,
+                'https://wearesho.com/config-webhook',
+            ),
+            $this->client
+        );
+        $this->configureClient(
+            [
+                'auth' => self::TEST_API_KEY,
+                'data' => [
+                    [
+                        'type' => 'telegram',
+                        'id' => 100500,
+                        'phone' => 380991234567,
+                        'message' => '123456',
+                        'hook' => 'https://wearesho.com/request-webhook',
+                    ],
+                ],
+            ],
+            '{"success":true,"data":[{"success":true,"data":{"id":100500,"msg_id":123456789,"data":1,"parts":1}}]}'
+        );
+
+        $response = $service->telegramOtp(new Delivery\AlphaSms\TelegramOtp\Request(
+            id: 100500,
+            phoneNumber: '380991234567',
+            code: '123456',
+            webhookUrl: 'https://wearesho.com/request-webhook',
+        ));
+
+        $this->assertSame('123456789', $response->messageId());
+    }
+
+    public function testTelegramOtpWrapsGuzzleException(): void
+    {
+        $this->client
+            ->expects($this->once())
+            ->method('request')
+            ->willThrowException(new GuzzleHttp\Exception\TransferException('Connection timed out', 28));
+
+        $this->expectExceptionObject(new Delivery\Exception('Connection timed out', 28));
+
+        $this->service->telegramOtp(new Delivery\AlphaSms\TelegramOtp\Request(
+            id: 100500,
+            phoneNumber: '380991234567',
+            code: '123456',
+        ));
+    }
+
     private function configureClient(
         array $expectedRequestBody,
         string $mockResponseBody,
