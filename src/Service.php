@@ -77,6 +77,42 @@ class Service implements Delivery\Batch\ServiceInterface
         return VoiceOtp\Response::parse(reset($response)['data']);
     }
 
+    /**
+     * @throws Delivery\Exception
+     */
+    public function telegramOtp(TelegramOtp\Request $request): TelegramOtp\Response
+    {
+        $requestBody = $request->jsonSerialize();
+        $webhookUrl = $this->config->getWebhookUrl();
+        if (!array_key_exists('hook', $requestBody) && !is_null($webhookUrl)) {
+            $requestBody['hook'] = $webhookUrl;
+        }
+
+        $response = $this->sendRequest([
+            $requestBody,
+        ]);
+        $responseItem = reset($response);
+        if (!is_array($responseItem) || !array_key_exists('success', $responseItem)) {
+            throw new Delivery\Exception(
+                "Missing success key in responseItem",
+                8001
+            );
+        }
+        if ($responseItem['success'] !== true) {
+            throw new Delivery\Exception(
+                $responseItem['error'] ?? "Unknown error, missing error key in responseItem.",
+                2002
+            );
+        }
+        if (!array_key_exists('data', $responseItem) || !is_array($responseItem['data'])) {
+            throw new Delivery\Exception(
+                "Missing data key in responseItem",
+                8002
+            );
+        }
+        return TelegramOtp\Response::parse($responseItem['data']);
+    }
+
     public function send(Delivery\MessageInterface $message): Delivery\ResultInterface
     {
         [$result] = [...$this->batch([$message])];
