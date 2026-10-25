@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use GuzzleHttp;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Wearesho\Delivery;
 
@@ -17,13 +18,13 @@ class ServiceTest extends TestCase
     private const TEST_API_KEY = '96ac8bf5-4347-4c48-aa8e-1147aecc3bd2'; // Random UUID
 
     private GuzzleHttp\ClientInterface&MockObject $client;
-    private Delivery\AlphaSms\ConfigInterface&MockObject $config;
+    private Delivery\AlphaSms\ConfigInterface&Stub $config;
     private Delivery\AlphaSms\Service $service;
 
     protected function setUp(): void
     {
         $this->client = $this->createMock(GuzzleHttp\ClientInterface::class);
-        $this->config = $this->createMock(Delivery\AlphaSms\ConfigInterface::class);
+        $this->config = $this->createStub(Delivery\AlphaSms\ConfigInterface::class);
         $this->config->method('getApiKey')->willReturn(self::TEST_API_KEY);
         $this->config->method('getSenderName')->willReturn(self::TEST_SENDER_NAME);
         $this->config->method('getWebhookUrl')->willReturn(null);
