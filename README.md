@@ -5,11 +5,13 @@
 [![codecov](https://codecov.io/gh/wearesho-team/alphasms-message-delivery/branch/master/graph/badge.svg)](https://codecov.io/gh/wearesho-team/alphasms-message-delivery)
 
 [wearesho-team/message-delivery](https://github.com/wearesho-team/message-delivery) implementation of
-[Delivery\ServiceInterface](https://github.com/wearesho-team/message-delivery/blob/1.3.4/src/ServiceInterface.php)
+[Delivery\ServiceInterface](https://github.com/wearesho-team/message-delivery/blob/master/src/ServiceInterface.php)
+
+Compatibility: tested on PHP 8.4, PHP 8.5
 
 ## Installation
 ```bash
-composer require wearsho-team/alphasms-message-delivery:^3.0
+composer require wearesho-team/alphasms-message-delivery:^3.3
 ```
 
 ## Cli Usage
